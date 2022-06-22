@@ -1,0 +1,48 @@
+{
+  "food_categories_page": {
+    "title": "Categorías de comidas",
+    "category_name": "Nombre de la categoría",
+    "add_category": "Añadir categoría"
+  },
+  "recipes_list_page": {
+    "title": "Lista de recetas",
+    "exporting_data": "Exportando los datos ...",
+    "data_exported": "Datos exportados",
+    "importing_data": "Importando los datos ...",
+    "data_imported": "Datos importados",
+    "select_meal": "Selecciona una comida",
+    "select_category": "Selecciona una categoría",
+    "recipe_deleted_successfuly": "Receta eliminada correctamente",
+    "error_delete_recipe": "Error en la eliminación de la receta"
+  },
+  "recipe_detail_page": {
+    "title": "Nueva receta",
+    "are_you_sure": "¿Seguro que quieres realizar esta operación?",
+    "recipe_name": "Nombre de receta",
+    "n_people": "Nº de personas",
+    "meal": "Comida",
+    "category": "Categoría",
+    "steps_follow": "Pasos a seguir",
+    "recipe_created_successfuly": "Receta creada correctamente",
+    "error_relation_recipe_meal": "Error al relacionar la receta con las comidas",
+    "error_saving_new_recipe": "Error al guardar la nueva receta",
+    "recipe_updated_successfuly": "Receta actualizada correctamente",
+    "error_update_recipe_data": "Error al actualizar los datos de la receta"
+  },
+  "meals_page": {
+    "title": "Comidas",
+    "meal_name": "Comida",
+    "add_meal": "Añadir comida"
+  },
+  "random_food_page": {
+    "title": "Elegir receta aleatoriamente",
+    "recipe_details": "Detalles de receta",
+    "generate_recipe": "Generar receta"
+  },
+  "common": {
+    "app_name": "Mi recetario",
+    "no_results": "No hay resultados",
+    "yes": "Sí",
+    "no": "No"
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "food_categories_page": {
+    "title": "Categories de menjars",
+    "category_name": "Nom de la categoria",
+    "add_category": "Afegir categoria"
+  },
+  "recipes_list_page": {
+    "title": "Llista de receptes",
+    "exporting_data": "Exportant les dades ...",
+    "data_exported": "Dades exportades",
+    "importing_data": "Important les dades ...",
+    "data_imported": "Dades importades",
+    "select_meal": "Selecciona un àpat",
+    "select_category": "Selecciona una categoria",
+    "recipe_deleted_successfuly": "Recepta eliminada correctament",
+    "error_delete_recipe": "Error en l'eliminació de la recepta"
+  },
+  "recipe_detail_page": {
+    "title": "Nova recepta",
+    "are_you_sure": "Segur que vols realitzar aquesta operació?",
+    "recipe_name": "Nom de recepta",
+    "n_people": "Nº de persones",
+    "meal": "Àpat",
+    "category": "Categoria",
+    "ings_and_quants": "Ingredients i quantitats",
+    "steps_follow": "Passos a seguir",
+    "recipe_created_successfuly": "Recepta creada correctament",
+    "error_relation_recipe_meal": "Error al relacionar la recepta amb els àpats",
+    "error_saving_new_recipe": "Error al guardar la nova recepta",
+    "recipe_updated_successfuly": "Recepta actualitzada correctament",
+    "error_update_recipe_data": "Error al actualitzar les dades de la recepta"
+  },
+  "meals_page": {
+    "title": "Àpats",
+    "meal_name": "Nom de l'àpat",
+    "add_meal": "Afegir àpat"
+  },
+  "random_food_page": {
+    "title": "Triar recepta aleatòriament",
+    "recipe_details": "Detalls de recepta",
+    "generate_recipe": "Generar recepta"
+  },
+  "common": {
+    "app_name": "El meu receptari",
+    "no_results": "No hi ha resultats",
+    "yes": "Si",
+    "no": "No"
+  }
+}

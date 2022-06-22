@@ -1,0 +1,49 @@
+{
+  "food_categories_page": {
+    "title": "Food categories",
+    "category_name": "Category name",
+    "add_category": "Add category"
+  },
+  "recipes_list_page": {
+    "title": "Recipes list",
+    "exporting_data": "Exporting data ...",
+    "data_exported": "Data exported",
+    "importing_data": "Importing data ...",
+    "data_imported": "Data imported",
+    "select_meal": "Select a meal",
+    "select_category": "Select a category",
+    "recipe_deleted_successfuly": "Recipe deleted successfuly",
+    "error_delete_recipe": "Error when deleting the recipe"
+  },
+  "recipe_detail_page": {
+    "title": "New recipe",
+    "are_you_sure": "Are you sure you want to do this?",
+    "recipe_name": "Recipe name",
+    "n_people": "Number of people",
+    "meal": "Meal",
+    "category": "Category",
+    "ings_and_quants": "Ingredientes y cantidades",
+    "steps_follow": "Steps to follow",
+    "recipe_created_successfuly": "Recie created successfuly",
+    "error_relation_recipe_meal": "Error when relationing the recipe with the meals",
+    "error_saving_new_recipe": "Error when saving the new recipe",
+    "recipe_updated_successfuly": "Recipe updated successfuly",
+    "error_update_recipe_data": "Error when updating recipe data"
+  },
+  "meals_page": {
+    "title": "Meals",
+    "meal_name": "Meal name",
+    "add_meal": "Add meal"
+  },
+  "random_food_page": {
+    "title": "Choose random recipe",
+    "recipe_details": "Recipe details",
+    "generate_recipe": "Generate recipe"
+  },
+  "common": {
+    "app_name": "My Recipe Book",
+    "no_results": "No results",
+    "yes": "Yes",
+    "no": "No"
+  }
+}
