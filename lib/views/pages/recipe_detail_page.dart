@@ -6,9 +6,12 @@ import 'package:flutter_myrecipesapp/controllers/recipe_controller.dart';
 import 'package:flutter_myrecipesapp/models/food_category.dart';
 import 'package:flutter_myrecipesapp/models/meals.dart';
 import 'package:flutter_myrecipesapp/models/recipe.dart';
+import 'package:flutter_myrecipesapp/views/widgets/are_you_sure_dialog.dart';
 import 'package:flutter_myrecipesapp/views/widgets/base_page.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:get/get.dart';
+
+import 'recipes_list_page.dart';
 
 class RecipeDetailPage extends StatelessWidget {
   static final routeName = "recipe_detail";
@@ -56,23 +59,13 @@ class RecipeDetailPage extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.save, size: 32),
             onPressed: () {
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  content: Text(translate("recipe_detail_page.are_you_sure")),
-                  actions: [
-                    TextButton(
-                      child: Text(translate("common.yes").toUpperCase()),
-                      onPressed: () {
-                        Get.back();
-                        _saveRecipe(arguments, selectedCategory);
-                      },
-                    ),
-                    TextButton(
-                      child: Text(translate("common.no").toUpperCase()),
-                      onPressed: () => Get.back(),
-                    ),
-                  ],
+              Get.dialog(
+                AreYouSureDialog(
+                  onYes: () async {
+                    await _saveRecipe(arguments, selectedCategory);
+
+                    Get.offNamed(RecipesListPage.routeName);
+                  },
                 ),
               );
             },
@@ -147,7 +140,8 @@ class RecipeDetailPage extends StatelessWidget {
     );
   }
 
-  void _saveRecipe(Recipe? arguments, FoodCategory? selectedCategory) async {
+  Future<void> _saveRecipe(
+      Recipe? arguments, FoodCategory? selectedCategory) async {
     final recipeMap = <String, dynamic>{
       "name": _recipeNameCtrl.text,
       "n_persons": _nPersonsCtrl.text,
@@ -176,8 +170,8 @@ class RecipeDetailPage extends StatelessWidget {
             await _mealsController.insertRecipeMeals(insertedId, selectedMeals);
 
         if (insertResult) {
-          Get.back();
-          _recipeController.fetchRecipeList();
+          Get.back(); // It removes the AreYouSure popup widget
+
           Get.rawSnackbar(
             message: translate("recipe_detail_page.recipe_created_successfuly"),
           );
