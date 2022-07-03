@@ -40,10 +40,25 @@
     "recipe_details": "Detalls de recepta",
     "generate_recipe": "Generar recepta"
   },
+  "database": {
+    "breakfast": "Esmorzar",
+    "lunch": "Dinar",
+    "dinner": "Sopar",
+    "fish": "Peix",
+    "pasta": "Pasta",
+    "meat": "Carn"
+  },
+  "validations": {
+    "empty_field": "Camp buit",
+    "unknown_error": "Error desconegut",
+    "empty_meals_field": "Camp àpats no seleccionat",
+    "empty_category_field": "Camp categoria no seleccionat"
+  },
   "common": {
     "app_name": "El meu receptari",
     "no_results": "No hi ha resultats",
     "yes": "Si",
-    "no": "No"
+    "no": "No",
+    "are_you_sure": "Segur que vols realitzar aquesta operació?"
   }
 }

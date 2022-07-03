@@ -22,9 +22,9 @@
     "n_people": "Number of people",
     "meal": "Meal",
     "category": "Category",
-    "ings_and_quants": "Ingredientes y cantidades",
+    "ings_and_quants": "Ingredients and quantities",
     "steps_follow": "Steps to follow",
-    "recipe_created_successfuly": "Recie created successfuly",
+    "recipe_created_successfuly": "Recipe created successfuly",
     "error_relation_recipe_meal": "Error when relationing the recipe with the meals",
     "error_saving_new_recipe": "Error when saving the new recipe",
     "recipe_updated_successfuly": "Recipe updated successfuly",
@@ -40,10 +40,25 @@
     "recipe_details": "Recipe details",
     "generate_recipe": "Generate recipe"
   },
+  "database": {
+    "breakfast": "Breakfast",
+    "lunch": "Lunch",
+    "dinner": "Dinner",
+    "fish": "Fish",
+    "pasta": "Pasta",
+    "meat": "Meat"
+  },
+  "validations": {
+    "empty_field": "Empty field",
+    "unknown_error": "Unknown error",
+    "empty_meals_field": "Empty field meals",
+    "empty_category_field": "Empty field category"
+  },
   "common": {
     "app_name": "My Recipe Book",
     "no_results": "No results",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "are_you_sure": "Are you sure you want to do this?"
   }
 }
