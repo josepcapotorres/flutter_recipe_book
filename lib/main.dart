@@ -51,6 +51,10 @@ class MyApp extends StatelessWidget {
 
   final _appThemeData = ThemeData(
     primaryColor: AppColors.primaryColor,
+    colorScheme: ColorScheme.fromSeed(
+      primary: Colors.green,
+      seedColor: Colors.green,
+    ),
     appBarTheme: AppBarTheme(
       backgroundColor: AppColors.primaryColor,
     ),
