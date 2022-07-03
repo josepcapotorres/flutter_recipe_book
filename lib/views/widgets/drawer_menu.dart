@@ -3,6 +3,7 @@ import 'package:flutter_myrecipesapp/views/pages/food_categories_page.dart';
 import 'package:flutter_myrecipesapp/views/pages/meals_page.dart';
 import 'package:flutter_myrecipesapp/views/pages/random_food_page.dart';
 import 'package:flutter_myrecipesapp/views/pages/recipes_list_page.dart';
+import 'package:flutter_translate/flutter_translate.dart';
 import 'package:get/get.dart';
 
 class DrawerMenu extends StatelessWidget {
@@ -11,29 +12,30 @@ class DrawerMenu extends StatelessWidget {
     return Drawer(
       child: Column(
         children: [
+          // TODO: Personalitzar Header
           DrawerHeader(
             child: Center(
               child: Text("Header"),
             ),
           ),
           _DrawerItem(
-            title: "Llista de receptes",
-            onTap: () => Get.toNamed(RecipesListPage.routeName),
+            title: translate("recipes_list_page.title"),
+            onTap: () => Get.offNamed(RecipesListPage.routeName),
           ),
           Divider(),
           _DrawerItem(
-            title: "Triar recepta aleatòriament",
-            onTap: () => Get.toNamed(RandomFoodPage.routeName),
+            title: translate("random_food_page.title"),
+            onTap: () => Get.offNamed(RandomFoodPage.routeName),
           ),
           Divider(),
           _DrawerItem(
-            title: "Categories de menjar",
-            onTap: () => Get.toNamed(FoodCategoriesPage.routeName),
+            title: translate("food_categories_page.title"),
+            onTap: () => Get.offNamed(FoodCategoriesPage.routeName),
           ),
           Divider(),
           _DrawerItem(
-            title: "Àpats",
-            onTap: () => Get.toNamed(FoodMealsPage.routeName),
+            title: translate("meals_page.title"),
+            onTap: () => Get.offNamed(FoodMealsPage.routeName),
           ),
         ],
       ),
