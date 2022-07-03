@@ -22,8 +22,8 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  // TODO: Traduir tots els texts
   // TODO: Quan TOT el desenvolupament estigui acabat, currar-se un readme.md
+  // TODO: Crear un splash screen des d'Android natiu
 
   @override
   Widget build(BuildContext context) {
@@ -45,14 +45,20 @@ class MyApp extends StatelessWidget {
       ],
       supportedLocales: localizationDelegate.supportedLocales,
       locale: localizationDelegate.currentLocale,
-      theme: ThemeData(
-        appBarTheme: AppBarTheme(
-          backgroundColor: AppColors.primaryColor,
-        ),
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: AppColors.primaryColor,
-        ),
-      ),
+      theme: _appThemeData,
     );
   }
+
+  final _appThemeData = ThemeData(
+    primaryColor: AppColors.primaryColor,
+    appBarTheme: AppBarTheme(
+      backgroundColor: AppColors.primaryColor,
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ElevatedButton.styleFrom(primary: AppColors.primaryColor),
+    ),
+    floatingActionButtonTheme: FloatingActionButtonThemeData(
+      backgroundColor: AppColors.primaryColor,
+    ),
+  );
 }
