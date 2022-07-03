@@ -28,7 +28,8 @@
     "error_relation_recipe_meal": "Error al relacionar la recepta amb els àpats",
     "error_saving_new_recipe": "Error al guardar la nova recepta",
     "recipe_updated_successfuly": "Recepta actualitzada correctament",
-    "error_update_recipe_data": "Error al actualitzar les dades de la recepta"
+    "error_update_recipe_data": "Error al actualitzar les dades de la recepta",
+    "error_deleting_recipe": "Error al eliminar la recepta"
   },
   "meals_page": {
     "title": "Àpats",
@@ -52,13 +53,15 @@
     "empty_field": "Camp buit",
     "unknown_error": "Error desconegut",
     "empty_meals_field": "Camp àpats no seleccionat",
-    "empty_category_field": "Camp categoria no seleccionat"
+    "empty_category_field": "Camp categoria no seleccionat",
+    "value_must_be_number": "El valor ha de ser un número"
   },
   "common": {
     "app_name": "El meu receptari",
     "no_results": "No hi ha resultats",
     "yes": "Si",
     "no": "No",
-    "are_you_sure": "Segur que vols realitzar aquesta operació?"
+    "are_you_sure": "Segur que vols realitzar aquesta operació?",
+    "loading": "Carregant ..."
   }
 }

@@ -27,7 +27,8 @@
     "error_relation_recipe_meal": "Error al relacionar la receta con las comidas",
     "error_saving_new_recipe": "Error al guardar la nueva receta",
     "recipe_updated_successfuly": "Receta actualizada correctamente",
-    "error_update_recipe_data": "Error al actualizar los datos de la receta"
+    "error_update_recipe_data": "Error al actualizar los datos de la receta",
+    "error_deleting_recipe": "Error al eliminar la receta"
   },
   "meals_page": {
     "title": "Comidas",
@@ -51,13 +52,15 @@
     "empty_field": "Campo vacío",
     "unknown_error": "Error desconocido",
     "empty_meals_field": "Campo comidas no seleccionado",
-    "empty_category_field": "Campo categoría no seleccionado"
+    "empty_category_field": "Campo categoría no seleccionado",
+    "value_must_be_number": "El valor tiene que ser un número"
   },
   "common": {
     "app_name": "Mi recetario",
     "no_results": "No hay resultados",
     "yes": "Sí",
     "no": "No",
-    "are_you_sure": "¿Seguro que quieres realizar esta operación?"
+    "are_you_sure": "¿Seguro que quieres realizar esta operación?",
+    "loading": "Cargando ..."
   }
 }

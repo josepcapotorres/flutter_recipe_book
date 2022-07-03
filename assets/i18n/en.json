@@ -28,7 +28,8 @@
     "error_relation_recipe_meal": "Error when relationing the recipe with the meals",
     "error_saving_new_recipe": "Error when saving the new recipe",
     "recipe_updated_successfuly": "Recipe updated successfuly",
-    "error_update_recipe_data": "Error when updating recipe data"
+    "error_update_recipe_data": "Error when updating recipe data",
+    "error_deleting_recipe": "Error when deleting the recipe"
   },
   "meals_page": {
     "title": "Meals",
@@ -52,13 +53,15 @@
     "empty_field": "Empty field",
     "unknown_error": "Unknown error",
     "empty_meals_field": "Empty field meals",
-    "empty_category_field": "Empty field category"
+    "empty_category_field": "Empty field category",
+    "value_must_be_number": "The value must be a number"
   },
   "common": {
     "app_name": "My Recipe Book",
     "no_results": "No results",
     "yes": "Yes",
     "no": "No",
-    "are_you_sure": "Are you sure you want to do this?"
+    "are_you_sure": "Are you sure you want to do this?",
+    "loading": "Loading ..."
   }
 }
