@@ -11,6 +11,8 @@ import 'package:flutter_myrecipesapp/views/widgets/base_page.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:get/get.dart';
 
+import '../../helpers/app_colors.dart';
+
 class RecipesListPage extends StatelessWidget /*with WidgetsBindingObserver*/ {
   static final routeName = "recipes_list";
 
@@ -33,12 +35,13 @@ class RecipesListPage extends StatelessWidget /*with WidgetsBindingObserver*/ {
           IconButton(
             icon: Icon(Icons.file_download),
             onPressed: () async {
-              // TODO: Convertir a popup amb Progress
-              Get.rawSnackbar(
+              _recipeController.showLoadingDialog(
                 message: translate("recipes_list_page.exporting_data"),
               );
 
               await _recipeController.exportData();
+
+              _recipeController.hideLoadingDialog();
 
               Get.rawSnackbar(
                 message: translate("recipes_list_page.data_exported"),
@@ -48,19 +51,20 @@ class RecipesListPage extends StatelessWidget /*with WidgetsBindingObserver*/ {
           IconButton(
             icon: Icon(Icons.file_upload),
             onPressed: () async {
-              // TODO: Convertir a popup amb Progress
-              Get.rawSnackbar(
+              _recipeController.showLoadingDialog(
                 message: translate("recipes_list_page.importing_data"),
-                duration: Duration(seconds: 2),
               );
 
               await _recipeController.importData();
+
+              _recipeController.hideLoadingDialog();
 
               Get.rawSnackbar(
                 message: translate("recipes_list_page.data_imported"),
                 duration: Duration(seconds: 2),
               );
-              // TODO: Falta refrescar pantalla perquè surtin les noves receptes
+
+              _recipeController.fetchRecipeList();
             },
           ),
         ],
@@ -127,7 +131,7 @@ class _MealDropdownListState extends State<_MealDropdownList> {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButton<Meal>(
+    return DropdownButtonFormField<Meal>(
       isExpanded: true,
       hint: Text(
         translate("recipes_list_page.select_meal"),
@@ -146,6 +150,10 @@ class _MealDropdownListState extends State<_MealDropdownList> {
           widget.onChanged(newValue!);
         });
       },
+      decoration: InputDecoration(
+        border: OutlineInputBorder(),
+        focusColor: AppColors.primaryColor,
+      ),
     );
   }
 }

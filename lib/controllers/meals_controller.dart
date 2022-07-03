@@ -1,9 +1,10 @@
+import 'package:flutter_myrecipesapp/controllers/base_controller.dart';
 import 'package:flutter_myrecipesapp/models/meals.dart';
 import 'package:get/get.dart';
 
 import 'database_controller.dart';
 
-class MealsController extends GetxController {
+class MealsController extends BaseController {
   List<Meal> meals = [];
   List<Meal> selectedMeals = [];
   bool loading = true;
@@ -118,5 +119,9 @@ class MealsController extends GetxController {
     update();
 
     return result;
+  }
+
+  bool isMealFieldValidated() {
+    return meals.where((e) => e.selected).toList().isNotEmpty;
   }
 }

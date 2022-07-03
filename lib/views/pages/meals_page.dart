@@ -5,6 +5,8 @@ import 'package:flutter_myrecipesapp/views/widgets/base_page.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:get/get.dart';
 
+import '../widgets/are_you_sure_dialog.dart';
+
 class FoodMealsPage extends StatefulWidget {
   static const String routeName = "meals";
 
@@ -75,7 +77,14 @@ class _Meal extends StatelessWidget {
       trailing: IconButton(
         icon: Icon(Icons.clear),
         onPressed: () {
-          _mealsControllers.deleteMeal(meal.id!);
+          Get.dialog(
+            AreYouSureDialog(
+              onYes: () {
+                _mealsControllers.deleteMeal(meal.id!);
+                Get.back();
+              },
+            ),
+          );
         },
       ),
     );
@@ -85,6 +94,7 @@ class _Meal extends StatelessWidget {
 class _AddMealDialog extends StatelessWidget {
   final _mealsController = Get.find<MealsController>();
   final _mealsEditingCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
   final Meal? meal;
 
   _AddMealDialog({this.meal}) {
@@ -96,35 +106,45 @@ class _AddMealDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            textCapitalization: TextCapitalization.sentences,
-            decoration: InputDecoration(
-              labelText: translate("meals_page.meal_name"),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                labelText: translate("meals_page.meal_name"),
+              ),
+              controller: _mealsEditingCtrl,
+              validator: _mealsController.validateEmptyField,
             ),
-            controller: _mealsEditingCtrl,
-          ),
-          ElevatedButton(
-            child: Text(translate("meals_page.add_meal")),
-            onPressed: () {
-              if (meal != null) {
-                // Call update existing meal
-                meal!.name = _mealsEditingCtrl.text;
-                _mealsController.updateMeal(meal!);
-              } else {
-                // Call insert new meal
-                final meal = Meal();
-                meal.name = _mealsEditingCtrl.text;
+            ElevatedButton(
+              child: Text(translate("meals_page.add_meal")),
+              onPressed: () {
+                final formState = _formKey.currentState;
 
-                _mealsController.newMeal(meal);
-              }
+                if (formState?.validate() ?? false) {
+                  formState?.save();
 
-              Get.back();
-            },
-          ),
-        ],
+                  if (meal != null) {
+                    // Call update existing meal
+                    meal!.name = _mealsEditingCtrl.text;
+                    _mealsController.updateMeal(meal!);
+                  } else {
+                    // Call insert new meal
+                    final meal = Meal();
+                    meal.name = _mealsEditingCtrl.text;
+
+                    _mealsController.newMeal(meal);
+                  }
+
+                  Get.back();
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

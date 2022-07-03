@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_myrecipesapp/controllers/food_categories_controller.dart';
 import 'package:flutter_myrecipesapp/models/food_category.dart';
+import 'package:flutter_myrecipesapp/views/widgets/are_you_sure_dialog.dart';
 import 'package:flutter_myrecipesapp/views/widgets/base_page.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:get/get.dart';
@@ -75,7 +76,14 @@ class _Category extends StatelessWidget {
       trailing: IconButton(
         icon: Icon(Icons.clear),
         onPressed: () {
-          _foodCategoriesCtrl.deleteFoodCategory(category.id!);
+          Get.dialog(
+            AreYouSureDialog(
+              onYes: () {
+                _foodCategoriesCtrl.deleteFoodCategory(category.id!);
+                Get.back();
+              },
+            ),
+          );
         },
       ),
     );
@@ -86,6 +94,7 @@ class _AddFoodCategoryDialog extends StatelessWidget {
   final _foodCategoriesCtrl = Get.find<FoodCategoriesController>();
   final _foodCategoryCtrl = TextEditingController();
   final FoodCategory? category;
+  final _formKey = GlobalKey<FormState>();
 
   _AddFoodCategoryDialog({this.category}) {
     if (category != null) {
@@ -96,37 +105,47 @@ class _AddFoodCategoryDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextField(
-            textCapitalization: TextCapitalization.sentences,
-            decoration: InputDecoration(
-              labelText: translate("food_categories_page.category_name"),
+      content: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextFormField(
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                labelText: translate("food_categories_page.category_name"),
+              ),
+              controller: _foodCategoryCtrl,
+              validator: _foodCategoriesCtrl.validateEmptyField,
             ),
-            controller: _foodCategoryCtrl,
-          ),
-          SizedBox(height: 15),
-          ElevatedButton(
-            child: Text(
-                translate("food_categories_page.add_category").toUpperCase()),
-            onPressed: () {
-              if (category != null) {
-                // Call update existing category
-                category!.name = _foodCategoryCtrl.text;
-                _foodCategoriesCtrl.updateFoodCategory(category!);
-              } else {
-                // Call insert new category
-                final foodCategory = FoodCategory();
-                foodCategory.name = _foodCategoryCtrl.text;
+            SizedBox(height: 15),
+            ElevatedButton(
+              child: Text(
+                  translate("food_categories_page.add_category").toUpperCase()),
+              onPressed: () {
+                final formState = _formKey.currentState;
 
-                _foodCategoriesCtrl.newFoodCategory(foodCategory);
-              }
+                if (formState?.validate() ?? false) {
+                  formState?.save();
 
-              Get.back();
-            },
-          ),
-        ],
+                  if (category != null) {
+                    // Call update existing category
+                    category!.name = _foodCategoryCtrl.text;
+                    _foodCategoriesCtrl.updateFoodCategory(category!);
+                  } else {
+                    // Call insert new category
+                    final foodCategory = FoodCategory();
+                    foodCategory.name = _foodCategoryCtrl.text;
+
+                    _foodCategoriesCtrl.newFoodCategory(foodCategory);
+                  }
+
+                  Get.back();
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

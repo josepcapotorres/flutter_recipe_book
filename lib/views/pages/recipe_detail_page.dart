@@ -6,28 +6,28 @@ import 'package:flutter_myrecipesapp/controllers/recipe_controller.dart';
 import 'package:flutter_myrecipesapp/models/food_category.dart';
 import 'package:flutter_myrecipesapp/models/meals.dart';
 import 'package:flutter_myrecipesapp/models/recipe.dart';
-import 'package:flutter_myrecipesapp/views/widgets/are_you_sure_dialog.dart';
 import 'package:flutter_myrecipesapp/views/widgets/base_page.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:get/get.dart';
 
+import '../../helpers/format_helper.dart';
+import '../widgets/are_you_sure_dialog.dart';
 import 'recipes_list_page.dart';
 
 class RecipeDetailPage extends StatelessWidget {
   static final routeName = "recipe_detail";
+  final _formKey = GlobalKey<FormState>();
 
   final _mealsController = Get.find<MealsController>();
   final _foodCategoryCtrl = Get.find<FoodCategoriesController>();
   final _recipeController = Get.find<RecipeController>();
-  final _recipeNameCtrl = TextEditingController(text: "Espaguetis");
-  final _nPersonsCtrl = TextEditingController(text: "2");
-  final _ingsQuantsCtrl = TextEditingController(text: "I");
-  final _stepsCookingCtrl = TextEditingController(text: "P");
+  final _recipeNameCtrl = TextEditingController();
+  final _nPersonsCtrl = TextEditingController();
+  final _ingsQuantsCtrl = TextEditingController();
+  final _stepsCookingCtrl = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    /// TODO: Falta validar els camps de text
-
     final arguments = ModalRoute.of(context)!.settings.arguments as Recipe?;
     FoodCategory? selectedCategory;
     String titlePage;
@@ -59,83 +59,127 @@ class RecipeDetailPage extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.save, size: 32),
             onPressed: () {
-              Get.dialog(
-                AreYouSureDialog(
-                  onYes: () async {
-                    await _saveRecipe(arguments, selectedCategory);
+              final formState = _formKey.currentState;
 
-                    Get.offNamed(RecipesListPage.routeName);
-                  },
-                ),
-              );
+              if (formState?.validate() ?? false) {
+                formState?.save();
+
+                if (!_mealsController.isMealFieldValidated()) {
+                  Get.rawSnackbar(
+                      message: translate("validations.empty_meals_field"));
+                  return;
+                }
+
+                if (selectedCategory == null ||
+                    selectedCategory!.selected == false) {
+                  Get.rawSnackbar(
+                      message: translate("validations.empty_category_field"));
+
+                  return;
+                }
+
+                Get.dialog(
+                  AreYouSureDialog(
+                    onYes: () async {
+                      await _saveRecipe(arguments, selectedCategory);
+
+                      Get.offNamed(RecipesListPage.routeName);
+                    },
+                  ),
+                );
+              }
             },
           ),
         ],
       ),
-      body: ListView(
-        children: [
-          TextField(
-            controller: _recipeNameCtrl,
-            decoration: InputDecoration(
-              labelText: translate("recipe_detail_page.recipe_name"),
-            ),
-            textCapitalization: TextCapitalization.sentences,
-          ),
-          TextField(
-            controller: _nPersonsCtrl,
-            decoration: InputDecoration(
-              labelText: translate("recipe_detail_page.n_people"),
-            ),
-            keyboardType: TextInputType.number,
-          ),
-          SizedBox(height: 15),
-          Text(translate("recipe_detail_page.meal")),
-          GetBuilder<MealsController>(
-            builder: (_) {
-              return _MealDropdownList(
-                _mealsController.meals,
-                onChanged: (List<Meal> meals) {
-                  _mealsController.selectedMeals = meals;
-                },
-              );
-            },
-          ),
-          Text(translate("recipe_detail_page.category")),
-          GetBuilder<FoodCategoriesController>(
-            builder: (_) {
-              for (final category in _foodCategoryCtrl.categories) {
-                if (category.selected) {
-                  selectedCategory = category;
-                }
-              }
+      body: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TextFormField(
+                controller: _recipeNameCtrl,
+                decoration: InputDecoration(
+                  labelText: translate("recipe_detail_page.recipe_name"),
+                ),
+                textCapitalization: TextCapitalization.sentences,
+                validator: _recipeController.validateEmptyField,
+              ),
+              TextFormField(
+                controller: _nPersonsCtrl,
+                decoration: InputDecoration(
+                  labelText: translate("recipe_detail_page.n_people"),
+                ),
+                keyboardType: TextInputType.numberWithOptions(decimal: false),
+                validator: (_) {
+                  final emptyValidation = _recipeController.validateEmptyField(
+                    _nPersonsCtrl.text,
+                  );
 
-              return _FoodTypeList(
-                _foodCategoryCtrl.categories,
-                selectedCategory: selectedCategory,
-                onChanged: (category) {
-                  selectedCategory = category;
-                  selectedCategory!.selected = true;
+                  if (emptyValidation != null) {
+                    return emptyValidation;
+                  }
+
+                  if (!isNumeric(_nPersonsCtrl.text)) {
+                    return translate("validations.value_must_be_number");
+                  } else {
+                    return null;
+                  }
                 },
-              );
-            },
+              ),
+              SizedBox(height: 15),
+              Text(translate("recipe_detail_page.meal")),
+              GetBuilder<MealsController>(
+                builder: (_) {
+                  return _MealDropdownList(
+                    _mealsController.meals,
+                    onChanged: (List<Meal> meals) {
+                      _mealsController.selectedMeals = meals;
+                    },
+                  );
+                },
+              ),
+              Text(translate("recipe_detail_page.category")),
+              GetBuilder<FoodCategoriesController>(
+                builder: (_) {
+                  for (final category in _foodCategoryCtrl.categories) {
+                    if (category.selected) {
+                      selectedCategory = category;
+                    }
+                  }
+
+                  return _FoodTypeList(
+                    _foodCategoryCtrl.categories,
+                    selectedCategory: selectedCategory,
+                    onChanged: (category) {
+                      selectedCategory = category;
+                      selectedCategory!.selected = true;
+                    },
+                  );
+                },
+              ),
+              TextFormField(
+                controller: _ingsQuantsCtrl,
+                maxLines: 5,
+                decoration: InputDecoration(
+                  labelText: translate("recipe_detail_page.ings_and_quants"),
+                ),
+                textCapitalization: TextCapitalization.sentences,
+                validator: _recipeController.validateEmptyField,
+              ),
+              TextFormField(
+                controller: _stepsCookingCtrl,
+                maxLines: 7,
+                decoration: InputDecoration(
+                  labelText: translate("recipe_detail_page.steps_follow"),
+                ),
+                textCapitalization: TextCapitalization.sentences,
+                validator: _recipeController.validateEmptyField,
+              ),
+            ],
           ),
-          TextField(
-            controller: _ingsQuantsCtrl,
-            maxLines: 5,
-            decoration: InputDecoration(
-              labelText: translate("recipe_detail_page.ings_and_quants"),
-            ),
-            textCapitalization: TextCapitalization.sentences,
-          ),
-          TextField(
-            controller: _stepsCookingCtrl,
-            maxLines: 7,
-            decoration: InputDecoration(
-              labelText: translate("recipe_detail_page.steps_follow"),
-            ),
-            textCapitalization: TextCapitalization.sentences,
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -197,42 +241,47 @@ class RecipeDetailPage extends StatelessWidget {
       final deleteResult =
           await _mealsController.deleteMealsByRecipeId(recipe.id!);
 
-      // TODO: if error, show error message
-      if (deleteResult) {
-        // Ensure to insert the SELECTED meals on the screen
-        final selectedMeals =
-            _mealsController.selectedMeals.where((e) => e.selected).toList();
-
-        final recipeMealsResult = await _mealsController.insertRecipeMeals(
-          recipe.id!,
-          selectedMeals,
+      if (!deleteResult) {
+        Get.rawSnackbar(
+          message: translate("recipe_detail_page.error_deleting_recipe"),
         );
 
-        Get.back();
-        Get.back();
+        return;
+      }
 
-        // It checks if update query is success
-        if (updatedId) {
-          if (recipeMealsResult) {
-            Get.rawSnackbar(
-              message: translate(
-                "recipe_detail_page.recipe_updated_successfuly",
-              ),
-            );
-          } else {
-            Get.rawSnackbar(
-              message: translate(
-                "recipe_detail_page.error_relation_recipe_meal",
-              ),
-            );
-          }
+      // Ensure to insert the SELECTED meals on the screen
+      final selectedMeals =
+          _mealsController.selectedMeals.where((e) => e.selected).toList();
+
+      final recipeMealsResult = await _mealsController.insertRecipeMeals(
+        recipe.id!,
+        selectedMeals,
+      );
+
+      Get.back();
+      Get.back();
+
+      // It checks if update query is success
+      if (updatedId) {
+        if (recipeMealsResult) {
+          Get.rawSnackbar(
+            message: translate(
+              "recipe_detail_page.recipe_updated_successfuly",
+            ),
+          );
         } else {
           Get.rawSnackbar(
             message: translate(
-              "recipe_detail_page.error_update_recipe_data",
+              "recipe_detail_page.error_relation_recipe_meal",
             ),
           );
         }
+      } else {
+        Get.rawSnackbar(
+          message: translate(
+            "recipe_detail_page.error_update_recipe_data",
+          ),
+        );
       }
     }
   }
