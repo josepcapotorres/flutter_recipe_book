@@ -4,6 +4,7 @@ import 'package:flutter_myrecipesapp/models/food_category.dart';
 import 'package:flutter_myrecipesapp/models/meals.dart';
 import 'package:flutter_myrecipesapp/models/recipe.dart';
 import 'package:flutter_myrecipesapp/models/recipe_meal.dart';
+import 'package:flutter_translate/flutter_translate.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -68,13 +69,19 @@ class DBController {
       )
     ''');
 
-    await db.execute("INSERT INTO meal (name) VALUES ('Dinar')");
-    await db.execute("INSERT INTO meal (name) VALUES ('Sopar')");
+    await db.execute(
+        "INSERT INTO meal (name) VALUES ('${translate("database.breakfast")}')");
+    await db.execute(
+        "INSERT INTO meal (name) VALUES ('${translate("database.lunch")}')");
+    await db.execute(
+        "INSERT INTO meal (name) VALUES ('${translate("database.dinner")}')");
 
-    await db.execute("INSERT INTO food_category (name) VALUES ('Peix')");
-    await db.execute("INSERT INTO food_category (name) VALUES ('Carn')");
-    await db.execute("INSERT INTO food_category (name) VALUES ('Pasta')");
-    await db.execute("INSERT INTO food_category (name) VALUES ('Altres')");
+    await db.execute(
+        "INSERT INTO food_category (name) VALUES ('${translate("database.fish")}')");
+    await db.execute(
+        "INSERT INTO food_category (name) VALUES ('${translate("database.pasta")}')");
+    await db.execute(
+        "INSERT INTO food_category (name) VALUES ('${translate("database.meat")}')");
   }
 
   Future<List<Recipe>> getRecipes() async {
