@@ -10,7 +10,9 @@ import 'package:flutter_myrecipesapp/models/recipe_meal.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 
-class RecipeController extends GetxController {
+import 'base_controller.dart';
+
+class RecipeController extends BaseController {
   List<Recipe> recipeList = [];
   bool loading = true;
   Recipe? randomRecipe;
@@ -53,12 +55,15 @@ class RecipeController extends GetxController {
   void generateRandomRecipe() async {
     await fetchRecipeList();
 
-    final randNum = generateRandomNumber(recipeList.length - 1);
+    if (recipeList.isNotEmpty) {
+      final randNum = generateRandomNumber(recipeList.length - 1);
 
-    if (recipeList.length - 1 >= randNum) {
-      randomRecipe = recipeList[randNum];
+      if (recipeList.length - 1 >= randNum) {
+        randomRecipe = recipeList[randNum];
+      }
     }
 
+    loading = false;
     update();
   }
 
