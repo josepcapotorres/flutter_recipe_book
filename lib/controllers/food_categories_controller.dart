@@ -1,8 +1,9 @@
+import 'package:flutter_myrecipesapp/controllers/base_controller.dart';
 import 'package:flutter_myrecipesapp/controllers/database_controller.dart';
 import 'package:flutter_myrecipesapp/models/food_category.dart';
 import 'package:get/get.dart';
 
-class FoodCategoriesController extends GetxController {
+class FoodCategoriesController extends BaseController {
   List<FoodCategory> categories = [];
   bool loading = true;
 
