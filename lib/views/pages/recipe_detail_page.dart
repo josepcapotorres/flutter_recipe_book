@@ -187,10 +187,10 @@ class RecipeDetailPage extends StatelessWidget {
   Future<void> _saveRecipe(
       Recipe? arguments, FoodCategory? selectedCategory) async {
     final recipeMap = <String, dynamic>{
-      "name": _recipeNameCtrl.text,
-      "n_persons": _nPersonsCtrl.text,
-      "ings_and_quants": _ingsQuantsCtrl.text,
-      "steps_reproduce": _stepsCookingCtrl.text,
+      "name": _recipeNameCtrl.text.trim(),
+      "n_persons": _nPersonsCtrl.text.trim(),
+      "ings_and_quants": _ingsQuantsCtrl.text.trim(),
+      "steps_reproduce": _stepsCookingCtrl.text.trim(),
       "food_category_id": selectedCategory?.id,
       "meals": _mealsController.selectedMeals.map((e) => e.toJson()).toList(),
     };

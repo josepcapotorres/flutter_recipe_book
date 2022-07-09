@@ -119,8 +119,9 @@ class _AddMealDialog extends StatelessWidget {
               controller: _mealsEditingCtrl,
               validator: _mealsController.validateEmptyField,
             ),
+            SizedBox(height: 15),
             ElevatedButton(
-              child: Text(translate("meals_page.add_meal")),
+              child: Text(translate("meals_page.add_meal").toUpperCase()),
               onPressed: () {
                 final formState = _formKey.currentState;
 
@@ -129,7 +130,7 @@ class _AddMealDialog extends StatelessWidget {
 
                   if (meal != null) {
                     // Call update existing meal
-                    meal!.name = _mealsEditingCtrl.text;
+                    meal!.name = _mealsEditingCtrl.text.trim();
                     _mealsController.updateMeal(meal!);
                   } else {
                     // Call insert new meal
