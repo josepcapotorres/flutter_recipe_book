@@ -57,7 +57,7 @@
     "value_must_be_number": "The value must be a number"
   },
   "common": {
-    "app_name": "My Recipe Book",
+    "app_name": "My recipe book",
     "no_results": "No results",
     "yes": "Yes",
     "no": "No",
