@@ -50,19 +50,10 @@ class MyApp extends StatelessWidget {
   }
 
   final _appThemeData = ThemeData(
-    primaryColor: AppColors.primaryColor,
     colorScheme: ColorScheme.fromSeed(
-      primary: Colors.green,
-      seedColor: Colors.green,
-    ),
-    appBarTheme: AppBarTheme(
-      backgroundColor: AppColors.primaryColor,
-    ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: ElevatedButton.styleFrom(primary: AppColors.primaryColor),
-    ),
-    floatingActionButtonTheme: FloatingActionButtonThemeData(
-      backgroundColor: AppColors.primaryColor,
+      primary: AppColors.primaryColor,
+      seedColor: AppColors.primaryColor,
+      secondary: AppColors.primaryColorDark,
     ),
   );
 }
