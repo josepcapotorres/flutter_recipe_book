@@ -6,16 +6,27 @@ import 'package:flutter_myrecipesapp/views/pages/recipes_list_page.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:get/get.dart';
 
+import '../../helpers/assets_helper.dart';
+
 class DrawerMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
       child: Column(
         children: [
-          // TODO: Personalitzar Header
           DrawerHeader(
-            child: Center(
-              child: Text("Header"),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Image.asset(
+                    getAssetIconFilePath("launcher_icon.png"),
+                  ),
+                ),
+                SizedBox(height: 15, width: double.infinity),
+                Text(translate("common.app_name")),
+              ],
             ),
           ),
           _DrawerItem(
