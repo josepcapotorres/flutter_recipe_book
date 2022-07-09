@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter_myrecipesapp/controllers/database_controller.dart';
+import 'package:flutter_myrecipesapp/controllers/meals_controller.dart';
 import 'package:flutter_myrecipesapp/models/food_category.dart';
 import 'package:flutter_myrecipesapp/models/meals.dart';
 import 'package:flutter_myrecipesapp/models/recipe.dart';
@@ -22,10 +23,20 @@ class RecipeController extends BaseController {
   final _recipeMealFileName = "recipe_meals.json";
 
   Future<void> fetchRecipeList() async {
+    final mealsController = Get.find<MealsController>();
     await Future.delayed(Duration(seconds: 1));
     loading = false;
 
     recipeList = await DBController.instance.getRecipes();
+
+    for (int i = 0; i < recipeList.length; i++) {
+      final recipeMeals = await mealsController.getMeals(
+        recipeId: recipeList[i].id!,
+      );
+
+      final selectedMeals = recipeMeals.where((e) => e.selected).toList();
+      recipeList[i].meals = selectedMeals;
+    }
 
     update();
   }

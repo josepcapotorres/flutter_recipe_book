@@ -28,6 +28,7 @@ class RecipesListPage extends StatelessWidget /*with WidgetsBindingObserver*/ {
 
   @override
   Widget build(BuildContext context) {
+    // TODO: Afegir opció estil sense filtre a llista desplegable àpats i tipus de categoria
     return BasePage(
       appBar: AppBar(
         title: Text(translate("recipes_list_page.title")),
@@ -76,28 +77,60 @@ class RecipesListPage extends StatelessWidget /*with WidgetsBindingObserver*/ {
               _mealsController.meals,
               onChanged: (value) {
                 _selectedMeal = value;
+                _recipeController.fetchRecipeList();
               },
             ),
           ),
+          SizedBox(height: 15),
           GetBuilder<FoodCategoriesController>(
             builder: (_) => _FoodTypeList(
               _foodCategoriesCtrl.categories,
               onChanged: (value) {
                 _selectedCategory = value;
+                _recipeController.fetchRecipeList();
               },
             ),
           ),
           Expanded(
             child: GetBuilder<RecipeController>(
-              builder: (_) => _recipeController.loading
-                  ? Center(
-                      child: CircularProgressIndicator(),
-                    )
-                  : _recipeController.recipeList.isNotEmpty
-                      ? _RecipeList(recipeList: _recipeController.recipeList)
-                      : Center(
-                          child: Text(translate("common.no_results")),
-                        ),
+              builder: (_) {
+                List<Recipe> recipesToShow;
+
+                if (_recipeController.loading) {
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+
+                if (_recipeController.recipeList.isEmpty) {
+                  return Center(
+                    child: Text(translate("common.no_results")),
+                  );
+                } else {
+                  recipesToShow = _recipeController.recipeList;
+
+                  if (_selectedCategory != null) {
+                    recipesToShow = _recipeController.recipeList
+                        .where((e) => e.foodCategoryId == _selectedCategory!.id)
+                        .toList();
+                  }
+
+                  if (_selectedMeal != null) {
+                    recipesToShow = _filterRecipesByMeal(recipesToShow);
+                  }
+
+                  if (recipesToShow.isEmpty) {
+                    return Center(
+                      child: Text(translate("common.no_results")),
+                    );
+                  }
+
+                  return _RecipeList(
+                    recipeList: recipesToShow,
+                    selectedCategory: _selectedCategory,
+                  );
+                }
+              },
             ),
           ),
         ],
@@ -113,6 +146,24 @@ class RecipesListPage extends StatelessWidget /*with WidgetsBindingObserver*/ {
     _recipeController.fetchRecipeList();
     _foodCategoriesCtrl.fetchFoodCategories();
     _mealsController.fetchMeals();
+  }
+
+  List<Recipe> _filterRecipesByMeal(List<Recipe> recipesToShow) {
+    List<Recipe> filteredRecipes = [];
+
+    for (int i = 0; i < recipesToShow.length; i++) {
+      final currentRecipe = recipesToShow[i];
+      final selectedMeals = currentRecipe.meals
+          .where((e) => e.selected)
+          .where((e) => e.id == _selectedMeal!.id)
+          .toList();
+
+      if (selectedMeals.isNotEmpty) {
+        filteredRecipes.add(currentRecipe);
+      }
+    }
+
+    return filteredRecipes;
   }
 }
 
@@ -173,7 +224,7 @@ class _FoodTypeListState extends State<_FoodTypeList> {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButton<FoodCategory>(
+    return DropdownButtonFormField<FoodCategory>(
       isExpanded: true,
       hint: Text(
         translate("recipes_list_page.select_category"),
@@ -192,49 +243,59 @@ class _FoodTypeListState extends State<_FoodTypeList> {
           widget.onChanged(newValue);
         });
       },
+      decoration: InputDecoration(
+        border: OutlineInputBorder(),
+        focusColor: AppColors.primaryColor,
+      ),
     );
   }
 }
 
 class _RecipeList extends StatelessWidget {
   final List<Recipe> recipeList;
+  final FoodCategory? selectedCategory;
   final _recipeController = Get.find<RecipeController>();
 
-  _RecipeList({required this.recipeList});
+  _RecipeList({
+    required this.recipeList,
+    required this.selectedCategory,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ListView(
-      children: recipeList
-          .map((e) => _ListItem(
-                title: (e.name!),
-                onDelete: () async {
-                  final success = await _recipeController.deleteRecipe(e.id!);
+    return ListView.separated(
+      itemBuilder: (_, i) => _ListItem(
+        title: recipeList[i].name!,
+        onDelete: () async {
+          final success = await _recipeController.deleteRecipe(
+            recipeList[i].id!,
+          );
 
-                  Get.back();
+          Get.back();
 
-                  if (success) {
-                    Get.rawSnackbar(
-                      message: translate(
-                        "recipes_list_page.recipe_deleted_successfuly",
-                      ),
-                    );
-                  } else {
-                    Get.rawSnackbar(
-                      message: translate(
-                        "recipes_list_page.error_delete_recipe",
-                      ),
-                    );
-                  }
-                },
-                onTap: () {
-                  Get.toNamed(
-                    RecipeDetailPage.routeName,
-                    arguments: e,
-                  );
-                },
-              ))
-          .toList(),
+          if (success) {
+            Get.rawSnackbar(
+              message: translate(
+                "recipes_list_page.recipe_deleted_successfuly",
+              ),
+            );
+          } else {
+            Get.rawSnackbar(
+              message: translate(
+                "recipes_list_page.error_delete_recipe",
+              ),
+            );
+          }
+        },
+        onTap: () {
+          Get.toNamed(
+            RecipeDetailPage.routeName,
+            arguments: recipeList[i],
+          );
+        },
+      ),
+      itemCount: recipeList.length,
+      separatorBuilder: (_, i) => Divider(),
     );
   }
 }

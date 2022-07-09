@@ -10,11 +10,15 @@ class MealsController extends BaseController {
   bool loading = true;
 
   void fetchMeals({int recipeId = 0}) async {
-    /*loading = true;
+    meals = await getMeals(recipeId: recipeId);
+
+    loading = false;
 
     update();
+  }
 
-    await Future.delayed(Duration(seconds: 1));*/
+  Future<List<Meal>> getMeals({int recipeId = 0}) async {
+    List<Meal> meals;
 
     if (recipeId == 0) {
       meals = await DBController.instance.getMeals();
@@ -22,9 +26,7 @@ class MealsController extends BaseController {
       meals = await DBController.instance.getMealsByRecipeId(recipeId);
     }
 
-    loading = false;
-
-    update();
+    return meals;
   }
 
   void newMeal(Meal meal) async {
