@@ -23,7 +23,6 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   // TODO: Quan TOT el desenvolupament estigui acabat, currar-se un readme.md
-  // TODO: Crear un splash screen des d'Android natiu
 
   @override
   Widget build(BuildContext context) {
