@@ -23,11 +23,13 @@ class RecipeController extends BaseController {
   final _recipeMealFileName = "recipe_meals.json";
 
   Future<void> fetchRecipeList() async {
-    await Future.delayed(Duration(seconds: 1));
-    loading = false;
+    loading = true;
+    update();
 
     await getRecipeList();
+    await Future.delayed(Duration(milliseconds: 500));
 
+    loading = false;
     update();
   }
 
