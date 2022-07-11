@@ -23,9 +23,16 @@ class RecipeController extends BaseController {
   final _recipeMealFileName = "recipe_meals.json";
 
   Future<void> fetchRecipeList() async {
-    final mealsController = Get.find<MealsController>();
     await Future.delayed(Duration(seconds: 1));
     loading = false;
+
+    await getRecipeList();
+
+    update();
+  }
+
+  Future<void> getRecipeList() async {
+    final mealsController = Get.find<MealsController>();
 
     recipeList = await DBController.instance.getRecipes();
 
@@ -37,8 +44,6 @@ class RecipeController extends BaseController {
       final selectedMeals = recipeMeals.where((e) => e.selected).toList();
       recipeList[i].meals = selectedMeals;
     }
-
-    update();
   }
 
   Future<int> newRecipe(Recipe recipe) async {
@@ -64,10 +69,14 @@ class RecipeController extends BaseController {
   }
 
   void generateRandomRecipe() async {
-    await fetchRecipeList();
+    loading = true;
+    update(["random_food"]);
+
+    await Future.delayed(Duration(milliseconds: 500));
+    await getRecipeList();
 
     if (recipeList.isNotEmpty) {
-      final randNum = generateRandomNumber(recipeList.length - 1);
+      final randNum = _generateRandomNumber(recipeList.length - 1);
 
       if (recipeList.length - 1 >= randNum) {
         randomRecipe = recipeList[randNum];
@@ -75,10 +84,10 @@ class RecipeController extends BaseController {
     }
 
     loading = false;
-    update();
+    update(["random_food"]);
   }
 
-  int generateRandomNumber(int max) {
+  int _generateRandomNumber(int max) {
     final random = Random();
 
     int r = random.nextInt(max);

@@ -10,7 +10,7 @@ class RandomFoodPage extends StatefulWidget {
   static final routeName = "random_food";
 
   @override
-  _RandomFoodPageState createState() => _RandomFoodPageState();
+  State<RandomFoodPage> createState() => _RandomFoodPageState();
 }
 
 class _RandomFoodPageState extends State<RandomFoodPage> {
@@ -19,7 +19,6 @@ class _RandomFoodPageState extends State<RandomFoodPage> {
   @override
   void initState() {
     super.initState();
-
     _recipeController.generateRandomRecipe();
   }
 
@@ -30,6 +29,7 @@ class _RandomFoodPageState extends State<RandomFoodPage> {
         title: Text(translate("random_food_page.title")),
       ),
       body: GetBuilder<RecipeController>(
+        id: "random_food",
         builder: (_) {
           if (_recipeController.loading) {
             return Center(
