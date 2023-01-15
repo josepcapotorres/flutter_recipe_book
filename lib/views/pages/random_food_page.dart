@@ -67,8 +67,10 @@ class _RandomFoodPageState extends State<RandomFoodPage> {
             );
           } else {
             return Center(
-              child: Text(translate("common.no_results")),
-            );
+                child: Text(
+                    "No tens receptes guardades encara. Crea'n diverses per poder utilitzar aquesta característica")
+                //Text(translate("common.no_results")),
+                );
           }
         },
       ),

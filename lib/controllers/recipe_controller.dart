@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter_myrecipesapp/controllers/calendar_controller.dart';
 import 'package:flutter_myrecipesapp/controllers/database_controller.dart';
 import 'package:flutter_myrecipesapp/controllers/meals_controller.dart';
 import 'package:flutter_myrecipesapp/models/food_category.dart';
@@ -23,17 +24,21 @@ class RecipeController extends BaseController {
   final _recipeMealFileName = "recipe_meals.json";
 
   Future<void> fetchRecipeList() async {
-    loading = true;
-    update();
+    try {
+      loading = true;
+      update();
 
-    await getRecipeList();
-    await Future.delayed(Duration(milliseconds: 500));
+      await _getRecipeList();
+      await Future.delayed(Duration(milliseconds: 500));
 
-    loading = false;
-    update();
+      loading = false;
+      update();
+    } catch (e) {
+      print("");
+    }
   }
 
-  Future<void> getRecipeList() async {
+  Future<void> _getRecipeList() async {
     final mealsController = Get.find<MealsController>();
 
     recipeList = await DBController.instance.getRecipes();
@@ -46,6 +51,10 @@ class RecipeController extends BaseController {
       final selectedMeals = recipeMeals.where((e) => e.selected).toList();
       recipeList[i].meals = selectedMeals;
     }
+  }
+
+  Future<Recipe?> getRecipeById(int recipeId) async {
+    return await DBController.instance.getRecipeById(recipeId);
   }
 
   Future<int> newRecipe(Recipe recipe) async {
@@ -61,13 +70,30 @@ class RecipeController extends BaseController {
   }
 
   Future<bool> deleteRecipe(int recipeId) async {
+    final calendarCtrl = Get.find<CalendarController>();
+
+    // It deletes recipe from recipe table
     final success = await DBController.instance.deleteRecipe(recipeId);
 
-    if (success) {
-      fetchRecipeList();
+    if (!success) {
+      return false;
     }
 
-    return success;
+    fetchRecipeList();
+
+    // It deletes recipe from calendar table
+    final deleted = await calendarCtrl.deleteRecipeInCalendar(
+      recipeId: recipeId,
+    );
+
+    if (!deleted) {
+      return false;
+    }
+
+    // It refreshes calendar data on the screen
+    calendarCtrl.getCalendarData();
+
+    return true;
   }
 
   void generateRandomRecipe() async {
@@ -75,10 +101,12 @@ class RecipeController extends BaseController {
     update(["random_food"]);
 
     await Future.delayed(Duration(milliseconds: 500));
-    await getRecipeList();
+    await _getRecipeList();
 
     if (recipeList.isNotEmpty) {
-      final randNum = _generateRandomNumber(recipeList.length - 1);
+      int recipeNumRows = recipeList.length == 1 ? 1 : recipeList.length - 1;
+
+      final randNum = _generateRandomNumber(recipeNumRows);
 
       if (recipeList.length - 1 >= randNum) {
         randomRecipe = recipeList[randNum];
@@ -98,7 +126,7 @@ class RecipeController extends BaseController {
   }
 
   Future<void> exportData() async {
-    final exportDir = await getExternalStorageDirectory();
+    final exportDir = await _getImportExportDir();
     final appExportDir = Directory("${exportDir!.path}");
 
     if (!await appExportDir.exists()) {
@@ -189,13 +217,35 @@ class RecipeController extends BaseController {
   }
 
   Future<void> importData() async {
-    final exportDir = await getExternalStorageDirectory();
+    final exportDir = await _getImportExportDir();
     final appExportDir = Directory("${exportDir!.path}");
 
     await _importRecipes(appExportDir, _recipesFileName);
     await _importFoodCategories(appExportDir, _foodCategoriesFileName);
     await _importMeals(appExportDir, _mealsFileName);
     await _importRecipeMeals(appExportDir, _recipeMealFileName);
+  }
+
+  Future<Directory?> _getImportExportDir() async {
+    final appName = "RecipeBookApp";
+    Directory? directory;
+
+    try {
+      if (Platform.isIOS) {
+        directory = await getApplicationDocumentsDirectory();
+      } else {
+        directory = Directory('/storage/emulated/0/Download/$appName');
+        // Put file in global download folder, if for an unknown reason it didn't exist, we fallback
+        // ignore: avoid_slow_async_io
+        if (!await directory.exists()) {
+          await directory.create(recursive: true);
+        }
+      }
+    } catch (err, stack) {
+      print("Cannot get download folder path");
+    }
+
+    return directory;
   }
 
   Future<void> _importFoodCategories(

@@ -77,6 +77,14 @@ class _Meal extends StatelessWidget {
       trailing: IconButton(
         icon: Icon(Icons.clear),
         onPressed: () {
+          if (meal.id! == 0) {
+            Get.rawSnackbar(
+              message: translate("meals_page.cannot_del_meal"),
+            );
+
+            return;
+          }
+
           Get.dialog(
             AreYouSureDialog(
               onYes: () {
@@ -121,8 +129,18 @@ class _AddMealDialog extends StatelessWidget {
             ),
             SizedBox(height: 15),
             ElevatedButton(
-              child: Text(translate("meals_page.add_meal").toUpperCase()),
+              child: _ButtonText(meal),
               onPressed: () {
+                if (meal != null && meal!.id! == 0) {
+                  Get.rawSnackbar(
+                    message: translate(
+                      "meals_page.cannot_modify_meal",
+                    ),
+                  );
+
+                  return;
+                }
+
                 final formState = _formKey.currentState;
 
                 if (formState?.validate() ?? false) {
@@ -148,5 +166,24 @@ class _AddMealDialog extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _ButtonText extends StatelessWidget {
+  final Meal? meal;
+
+  const _ButtonText(this.meal);
+
+  @override
+  Widget build(BuildContext context) {
+    String buttonText;
+
+    if (meal == null) {
+      buttonText = translate("meals_page.add_meal");
+    } else {
+      buttonText = translate("meals_page.modify_meal");
+    }
+
+    return Text(buttonText.toUpperCase());
   }
 }

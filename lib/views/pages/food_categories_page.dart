@@ -76,6 +76,14 @@ class _Category extends StatelessWidget {
       trailing: IconButton(
         icon: Icon(Icons.clear),
         onPressed: () {
+          if (category.id! == 0) {
+            Get.rawSnackbar(
+              message: translate("food_categories_page.cannot_del_category"),
+            );
+
+            return;
+          }
+
           Get.dialog(
             AreYouSureDialog(
               onYes: () {
@@ -120,9 +128,18 @@ class _AddFoodCategoryDialog extends StatelessWidget {
             ),
             SizedBox(height: 15),
             ElevatedButton(
-              child: Text(
-                  translate("food_categories_page.add_category").toUpperCase()),
+              child: _ButtonText(category),
               onPressed: () {
+                if (category != null && category!.id! == 0) {
+                  Get.rawSnackbar(
+                    message: translate(
+                      "food_categories_page.cannot_modify_category",
+                    ),
+                  );
+
+                  return;
+                }
+
                 final formState = _formKey.currentState;
 
                 if (formState?.validate() ?? false) {
@@ -148,5 +165,24 @@ class _AddFoodCategoryDialog extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _ButtonText extends StatelessWidget {
+  final FoodCategory? category;
+
+  const _ButtonText(this.category);
+
+  @override
+  Widget build(BuildContext context) {
+    String buttonText;
+
+    if (category == null) {
+      buttonText = translate("food_categories_page.add_category");
+    } else {
+      buttonText = translate("food_categories_page.modify_category");
+    }
+
+    return Text(buttonText.toUpperCase());
   }
 }

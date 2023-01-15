@@ -22,13 +22,12 @@ class RecipesListPage extends StatelessWidget /*with WidgetsBindingObserver*/ {
   Meal? _selectedMeal;
   FoodCategory? _selectedCategory;
 
-  RecipesListPage() {
-    _loadData();
-  }
-
   @override
   Widget build(BuildContext context) {
-    // TODO: Afegir opció estil sense filtre a llista desplegable àpats i tipus de categoria
+    Future.microtask(() => _recipeController.fetchRecipeList());
+    _foodCategoriesCtrl.fetchFoodCategories();
+    _mealsController.fetchMeals();
+
     return BasePage(
       appBar: AppBar(
         title: Text(translate("recipes_list_page.title")),
@@ -109,13 +108,19 @@ class RecipesListPage extends StatelessWidget /*with WidgetsBindingObserver*/ {
                 } else {
                   recipesToShow = _recipeController.recipeList;
 
-                  if (_selectedCategory != null) {
+                  // selectedCategory means that variable has not been modified yet
+                  if (_selectedCategory != null &&
+                      _selectedCategory!.id != null &&
+                      _selectedCategory!.id! > 0) {
                     recipesToShow = _recipeController.recipeList
                         .where((e) => e.foodCategoryId == _selectedCategory!.id)
                         .toList();
                   }
 
-                  if (_selectedMeal != null) {
+                  // selecteMeal means that variable has not been modified yet
+                  if (_selectedMeal != null &&
+                      _selectedMeal!.id != null &&
+                      _selectedMeal!.id! > 0) {
                     recipesToShow = _filterRecipesByMeal(recipesToShow);
                   }
 
@@ -140,12 +145,6 @@ class RecipesListPage extends StatelessWidget /*with WidgetsBindingObserver*/ {
         onPressed: () => Get.toNamed(RecipeDetailPage.routeName),
       ),
     );
-  }
-
-  void _loadData() {
-    _recipeController.fetchRecipeList();
-    _foodCategoriesCtrl.fetchFoodCategories();
-    _mealsController.fetchMeals();
   }
 
   List<Recipe> _filterRecipesByMeal(List<Recipe> recipesToShow) {
@@ -182,29 +181,41 @@ class _MealDropdownListState extends State<_MealDropdownList> {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<Meal>(
-      isExpanded: true,
-      hint: Text(
-        translate("recipes_list_page.select_meal"),
-        style: TextStyle(color: Color(0xFF9F9F9F)),
-      ),
-      value: _selectedMeal,
-      items: widget.meals
-          .map((e) => DropdownMenuItem(
-                value: e,
-                child: Text(e.name),
-              ))
-          .toList(),
-      onChanged: (newValue) {
-        setState(() {
-          _selectedMeal = newValue;
-          widget.onChanged(newValue!);
-        });
-      },
-      decoration: InputDecoration(
-        border: OutlineInputBorder(),
-        focusColor: AppColors.primaryColor,
-      ),
+    if (widget.meals.isNotEmpty && _selectedMeal == null) {
+      // No filter field
+      _selectedMeal = widget.meals.first;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(translate("recipe_detail_page.meal")),
+        SizedBox(height: 5),
+        DropdownButtonFormField<Meal>(
+          isExpanded: true,
+          hint: Text(
+            translate("recipes_list_page.select_meal"),
+            style: TextStyle(color: Color(0xFF9F9F9F)),
+          ),
+          value: _selectedMeal,
+          items: widget.meals
+              .map((e) => DropdownMenuItem(
+                    value: e,
+                    child: Text(e.name),
+                  ))
+              .toList(),
+          onChanged: (newValue) {
+            setState(() {
+              _selectedMeal = newValue;
+              widget.onChanged(newValue!);
+            });
+          },
+          decoration: InputDecoration(
+            border: OutlineInputBorder(),
+            focusColor: AppColors.primaryColor,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -224,29 +235,41 @@ class _FoodTypeListState extends State<_FoodTypeList> {
 
   @override
   Widget build(BuildContext context) {
-    return DropdownButtonFormField<FoodCategory>(
-      isExpanded: true,
-      hint: Text(
-        translate("recipes_list_page.select_category"),
-        style: TextStyle(color: Color(0xFF9F9F9F)),
-      ),
-      value: _selectedCategory,
-      items: widget.categories
-          .map((e) => DropdownMenuItem(
-                value: e,
-                child: Text(e.name),
-              ))
-          .toList(),
-      onChanged: (newValue) {
-        setState(() {
-          _selectedCategory = newValue!;
-          widget.onChanged(newValue);
-        });
-      },
-      decoration: InputDecoration(
-        border: OutlineInputBorder(),
-        focusColor: AppColors.primaryColor,
-      ),
+    if (widget.categories.isNotEmpty && _selectedCategory == null) {
+      // No filter field
+      _selectedCategory = widget.categories.first;
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(translate("recipe_detail_page.category")),
+        SizedBox(height: 5),
+        DropdownButtonFormField<FoodCategory>(
+          isExpanded: true,
+          hint: Text(
+            translate("recipes_list_page.select_category"),
+            style: TextStyle(color: Color(0xFF9F9F9F)),
+          ),
+          value: _selectedCategory,
+          items: widget.categories
+              .map((e) => DropdownMenuItem(
+                    value: e,
+                    child: Text(e.name),
+                  ))
+              .toList(),
+          onChanged: (newValue) {
+            setState(() {
+              _selectedCategory = newValue!;
+              widget.onChanged(newValue);
+            });
+          },
+          decoration: InputDecoration(
+            border: OutlineInputBorder(),
+            focusColor: AppColors.primaryColor,
+          ),
+        ),
+      ],
     );
   }
 }

@@ -2,7 +2,10 @@
   "food_categories_page": {
     "title": "Categorías de comidas",
     "category_name": "Nombre de la categoría",
-    "add_category": "Añadir categoría"
+    "add_category": "Añadir categoría",
+    "modify_category": "Modificar categoría",
+    "cannot_del_category": "Esta categoría no se puede eliminar",
+    "cannot_modify_category": "Esta categoría no se puede modificar"
   },
   "recipes_list_page": {
     "title": "Lista de recetas",
@@ -22,18 +25,23 @@
     "n_people": "Nº de personas",
     "meal": "Comida",
     "category": "Categoría",
+    "ings_and_quants": "Ingredientes y cantidades",
     "steps_follow": "Pasos a seguir",
     "recipe_created_successfuly": "Receta creada correctamente",
     "error_relation_recipe_meal": "Error al relacionar la receta con las comidas",
     "error_saving_new_recipe": "Error al guardar la nueva receta",
     "recipe_updated_successfuly": "Receta actualizada correctamente",
     "error_update_recipe_data": "Error al actualizar los datos de la receta",
-    "error_deleting_recipe": "Error al eliminar la receta"
+    "error_deleting_recipe": "Error al eliminar la receta",
+    "are_you_sure_add_recipe_calendar": "¿Estás seguro de querer añadir esta receta en el calendario?"
   },
   "meals_page": {
     "title": "Comidas",
     "meal_name": "Comida",
-    "add_meal": "Añadir comida"
+    "add_meal": "Añadir comida",
+    "modify_meal": "Modificar comida",
+    "cannot_del_meal": "Esta comida no se puede eliminar",
+    "cannot_modify_meal": "Esta comida no se puede modificar"
   },
   "random_food_page": {
     "title": "Elegir receta aleatoriamente",
@@ -55,12 +63,17 @@
     "empty_category_field": "Campo categoría no seleccionado",
     "value_must_be_number": "El valor tiene que ser un número"
   },
+  "calendar_page": {
+    "title": "Calendario",
+    "no_recipe": "No recipe"
+  },
   "common": {
     "app_name": "Mi recetario",
     "no_results": "No hay resultados",
     "yes": "Sí",
     "no": "No",
     "are_you_sure": "¿Seguro que quieres realizar esta operación?",
-    "loading": "Cargando ..."
+    "loading": "Cargando ...",
+    "no_specified": "Sin especificar"
   }
 }

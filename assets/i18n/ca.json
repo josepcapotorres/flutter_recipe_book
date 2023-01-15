@@ -2,7 +2,10 @@
   "food_categories_page": {
     "title": "Categories de menjars",
     "category_name": "Nom de la categoria",
-    "add_category": "Afegir categoria"
+    "add_category": "Afegir categoria",
+    "modify_category": "Modificar categoria",
+    "cannot_del_category": "Aquesta categoria no es pot eliminar",
+    "cannot_modify_category": "Aquesta categoria no es pot modificar"
   },
   "recipes_list_page": {
     "title": "Llista de receptes",
@@ -29,12 +32,16 @@
     "error_saving_new_recipe": "Error al guardar la nova recepta",
     "recipe_updated_successfuly": "Recepta actualitzada correctament",
     "error_update_recipe_data": "Error al actualitzar les dades de la recepta",
-    "error_deleting_recipe": "Error al eliminar la recepta"
+    "error_deleting_recipe": "Error al eliminar la recepta",
+    "are_you_sure_add_recipe_calendar": "Estàs segur de voler afegir aquesta recepta al calendari?"
   },
   "meals_page": {
     "title": "Àpats",
     "meal_name": "Nom de l'àpat",
-    "add_meal": "Afegir àpat"
+    "add_meal": "Afegir àpat",
+    "modify_meal": "Modificar àpat",
+    "cannot_del_meal": "Aquest menjar no es pot eliminar",
+    "cannot_modify_meal": "Aquest menjar no es pot modificar"
   },
   "random_food_page": {
     "title": "Triar recepta aleatòriament",
@@ -56,12 +63,17 @@
     "empty_category_field": "Camp categoria no seleccionat",
     "value_must_be_number": "El valor ha de ser un número"
   },
+  "calendar_page": {
+    "title": "Calendari",
+    "no_recipe": "No hi ha recepta"
+  },
   "common": {
     "app_name": "El meu receptari",
     "no_results": "No hi ha resultats",
     "yes": "Si",
     "no": "No",
     "are_you_sure": "Segur que vols realitzar aquesta operació?",
-    "loading": "Carregant ..."
+    "loading": "Carregant ...",
+    "no_specified": "Sense especificar"
   }
 }

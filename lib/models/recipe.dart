@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'meals.dart';
 
 class Recipe {
-  late int? id;
+  int? id;
   String? name;
   late int nPersons;
   late String ingsAndQuants;

@@ -1,6 +1,6 @@
 import 'package:flutter_myrecipesapp/controllers/base_controller.dart';
 import 'package:flutter_myrecipesapp/models/meals.dart';
-import 'package:get/get.dart';
+import 'package:flutter_translate/flutter_translate.dart';
 
 import 'database_controller.dart';
 
@@ -25,6 +25,13 @@ class MealsController extends BaseController {
     } else {
       meals = await DBController.instance.getMealsByRecipeId(recipeId);
     }
+
+    final noFilterMeal = Meal();
+    noFilterMeal
+      ..id = 0
+      ..name = translate("common.no_specified");
+
+    meals.insert(0, noFilterMeal);
 
     return meals;
   }

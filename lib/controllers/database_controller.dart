@@ -1,13 +1,17 @@
 import 'dart:io';
 
+import 'package:flutter_myrecipesapp/models/calendar_cell.dart';
 import 'package:flutter_myrecipesapp/models/food_category.dart';
 import 'package:flutter_myrecipesapp/models/meals.dart';
 import 'package:flutter_myrecipesapp/models/recipe.dart';
 import 'package:flutter_myrecipesapp/models/recipe_meal.dart';
 import 'package:flutter_translate/flutter_translate.dart';
+import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
+
+// TODO: Split by tables. A file for each SQL table
 
 class DBController {
   final String _dbName = "my_recipes.db";
@@ -69,6 +73,17 @@ class DBController {
       )
     ''');
 
+    await db.execute("""
+      CREATE TABLE calendar (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        recipe_id INTEGER,
+        meal_id INTEGER,
+        date DATETIME,
+        FOREIGN KEY (recipe_id) REFERENCES recipe(id)
+        FOREIGN KEY (meal_id) REFERENCES meal(id)
+      )
+    """);
+
     await db.execute(
         "INSERT INTO meal (name) VALUES ('${translate("database.breakfast")}')");
     await db.execute(
@@ -94,6 +109,26 @@ class DBController {
     }
 
     return results.map((e) => Recipe.fromJson(e)).toList();
+  }
+
+  Future<Recipe?> getRecipeById(int recipeId) async {
+    final db = await database;
+
+    List<Map<String, Object?>>? results = await db?.query(
+      "recipe",
+      where: "id = ?",
+      whereArgs: [recipeId],
+    );
+
+    if (results == null) {
+      return null;
+    }
+
+    if (results.isEmpty) {
+      return null;
+    }
+
+    return Recipe.fromJson(results.first);
   }
 
   Future<int> newRecipe(Recipe recipe) async {
@@ -210,6 +245,19 @@ class DBController {
     }
 
     return results.map((e) => Meal.fromJson(e)).toList();
+  }
+
+  Future<Meal?> getMealById(int mealId) async {
+    final db = await database;
+
+    List<Map<String, Object?>>? results =
+        await db?.query("meal", where: "id = ?", whereArgs: [mealId]);
+
+    if (results != null && results.isNotEmpty) {
+      return Meal.fromJson(results.first);
+    } else {
+      return null;
+    }
   }
 
   Future<List<Meal>> getMealsByRecipeId(int recipeId) async {
@@ -341,5 +389,100 @@ class DBController {
     print("result: $result");
 
     return result != null && result == 1;
+  }
+
+  Future<List<FilledCalendarCell>> getCalendarData() async {
+    final db = await database;
+
+    final calendarData = await db?.rawQuery("""
+      SELECT c.id, c.recipe_id, c.meal_id, r.name AS 'recipe_name', c.date
+      FROM calendar c
+      JOIN recipe r ON c.recipe_id = r.id 
+      JOIN recipe_meal rm ON r.id = rm.recipeId
+    """) ?? [];
+
+    return calendarData.map((e) => FilledCalendarCell.fromJson(e)).toList();
+
+    /*return [
+      FilledCalendarCell(
+        recipeId: 1,
+        mealId: 1,
+        date: DateTime(2022, 9, 19),
+        recipeName: "Cereales",
+      ),
+      FilledCalendarCell(
+        recipeId: 2,
+        mealId: 2,
+        date: DateTime(2022, 9, 21),
+        recipeName: "Espaguetis",
+      ),
+      FilledCalendarCell(
+        recipeId: 3,
+        mealId: 3,
+        date: DateTime(2022, 9, 23),
+        recipeName: "Truita de delicias",
+      ),
+    ];*/
+  }
+
+  Future<bool> insertRecipeInCalendar(FilledCalendarCell calendar) async {
+    final db = await database;
+    final inserted = await db?.insert(
+      "calendar",
+      calendar.toJson(),
+      conflictAlgorithm: ConflictAlgorithm.abort,
+    );
+
+    // TODO: id on db is stored as null
+    return inserted != null && inserted > 0;
+  }
+
+  Future<bool> deleteRecipeInCalendar(int recipeId) async {
+    final db = await database;
+
+    final recipeData = await getRecipeById(recipeId);
+
+    if (recipeData == null) return false;
+
+    final deleted = await db?.delete(
+      "calendar",
+      where: "id = ?",
+      whereArgs: [recipeData.id!],
+    );
+
+    return deleted != null && deleted > 0;
+  }
+
+  Future<void> deleteOldCalendarEntries() async {
+    final db = await database;
+
+    final beforeCalendarData = await db?.rawQuery("""
+      SELECT *
+      FROM calendar c 
+    """) ?? [];
+
+    final dateFormat = DateFormat("yyyy-MM-dd");
+
+    final strSql = """
+      SELECT *
+      FROM calendar c 
+      WHERE date < ${dateFormat.format(DateTime.now())}
+    """;
+
+    final calendarData = await db?.rawQuery("""
+      SELECT *
+      FROM calendar c 
+      WHERE date < ${dateFormat.format(DateTime.now())}
+    """) ?? [];
+
+    for (final calendarRow in calendarData) {
+      final deleted = await db?.delete(
+        "calendar",
+        where: "id = ?",
+        whereArgs: [
+          calendarRow["id"],
+        ],
+      );
+    }
   }
 }

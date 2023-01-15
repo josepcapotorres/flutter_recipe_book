@@ -2,7 +2,10 @@
   "food_categories_page": {
     "title": "Food categories",
     "category_name": "Category name",
-    "add_category": "Add category"
+    "add_category": "Add category",
+    "modify_category": "Modify category",
+    "cannot_del_category": "This category cannot be deleted",
+    "cannot_modify_category": "This category cannot be modified"
   },
   "recipes_list_page": {
     "title": "Recipes list",
@@ -29,12 +32,16 @@
     "error_saving_new_recipe": "Error when saving the new recipe",
     "recipe_updated_successfuly": "Recipe updated successfuly",
     "error_update_recipe_data": "Error when updating recipe data",
-    "error_deleting_recipe": "Error when deleting the recipe"
+    "error_deleting_recipe": "Error when deleting the recipe",
+    "are_you_sure_add_recipe_calendar": "Are you sure you want to add this recipe in the calendar?"
   },
   "meals_page": {
     "title": "Meals",
     "meal_name": "Meal name",
-    "add_meal": "Add meal"
+    "add_meal": "Add meal",
+    "modify_meal": "Modify meal",
+    "cannot_del_meal": "This meal cannot be deleted",
+    "cannot_modify_meal": "This meal cannot be modified"
   },
   "random_food_page": {
     "title": "Choose random recipe",
@@ -56,12 +63,17 @@
     "empty_category_field": "Empty field category",
     "value_must_be_number": "The value must be a number"
   },
+  "calendar_page": {
+    "title": "Calendar",
+    "no_recipe": "No recipe"
+  },
   "common": {
     "app_name": "My recipe book",
     "no_results": "No results",
     "yes": "Yes",
     "no": "No",
     "are_you_sure": "Are you sure you want to do this?",
-    "loading": "Loading ..."
+    "loading": "Loading ...",
+    "no_specified": "Unspecified"
   }
 }

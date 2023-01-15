@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_myrecipesapp/controllers/calendar_controller.dart';
 import 'package:flutter_myrecipesapp/controllers/database_controller.dart';
 import 'package:flutter_myrecipesapp/controllers/food_categories_controller.dart';
 import 'package:flutter_myrecipesapp/controllers/meals_controller.dart';
 import 'package:flutter_myrecipesapp/controllers/recipe_controller.dart';
+import 'package:flutter_myrecipesapp/helpers/date_time_helper.dart';
+import 'package:flutter_myrecipesapp/models/calendar_cell.dart';
 import 'package:flutter_myrecipesapp/models/food_category.dart';
 import 'package:flutter_myrecipesapp/models/meals.dart';
 import 'package:flutter_myrecipesapp/models/recipe.dart';
@@ -10,42 +13,52 @@ import 'package:flutter_myrecipesapp/views/widgets/base_page.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:get/get.dart';
 
+import '../../exceptions/recipe_exceptions.dart';
 import '../../helpers/format_helper.dart';
 import '../widgets/are_you_sure_dialog.dart';
 import 'recipes_list_page.dart';
 
-class RecipeDetailPage extends StatelessWidget {
+class RecipeDetailPage extends StatefulWidget {
   static final routeName = "recipe_detail";
-  final _formKey = GlobalKey<FormState>();
 
+  @override
+  State<RecipeDetailPage> createState() => _RecipeDetailPageState();
+}
+
+class _RecipeDetailPageState extends State<RecipeDetailPage> {
+  final _formKey = GlobalKey<FormState>();
   final _mealsController = Get.find<MealsController>();
   final _foodCategoryCtrl = Get.find<FoodCategoriesController>();
   final _recipeController = Get.find<RecipeController>();
+  final _calendarCtrl = Get.find<CalendarController>();
   final _recipeNameCtrl = TextEditingController();
   final _nPersonsCtrl = TextEditingController();
   final _ingsQuantsCtrl = TextEditingController();
   final _stepsCookingCtrl = TextEditingController();
+  DateTime? _selectedCalendarDate;
+  Meal? _selectedCalendarMeal;
 
   @override
   Widget build(BuildContext context) {
-    final arguments = ModalRoute.of(context)!.settings.arguments as Recipe?;
+    final selectedRecipe =
+        ModalRoute.of(context)!.settings.arguments as Recipe?;
     FoodCategory? selectedCategory;
     String titlePage;
 
-    if (arguments != null) {
-      _recipeNameCtrl.text = arguments.name!;
-      _nPersonsCtrl.text = arguments.nPersons.toString();
-      _ingsQuantsCtrl.text = arguments.ingsAndQuants;
-      _stepsCookingCtrl.text = arguments.stepsReproduce;
+    if (selectedRecipe != null) {
+      _recipeNameCtrl.text = selectedRecipe.name!;
+      _nPersonsCtrl.text = selectedRecipe.nPersons.toString();
+      _ingsQuantsCtrl.text = selectedRecipe.ingsAndQuants;
+      _stepsCookingCtrl.text = selectedRecipe.stepsReproduce;
       selectedCategory = FoodCategory();
       selectedCategory
-        ..id = arguments.foodCategoryId
-        ..name = arguments.name!
+        ..id = selectedRecipe.foodCategoryId
+        ..name = selectedRecipe.name!
         ..selected = true;
-      titlePage = arguments.name!;
+      titlePage = selectedRecipe.name!;
 
-      _mealsController.fetchMeals(recipeId: arguments.id!);
-      _foodCategoryCtrl.fetchFoodCategories(recipeId: arguments.id!);
+      _mealsController.fetchMeals(recipeId: selectedRecipe.id!);
+      _foodCategoryCtrl.fetchFoodCategories(recipeId: selectedRecipe.id!);
     } else {
       titlePage = translate("recipe_detail_page.title");
       _mealsController.fetchMeals();
@@ -56,6 +69,45 @@ class RecipeDetailPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(titlePage),
         actions: [
+          IconButton(
+            icon: Icon(Icons.calendar_month, size: 32),
+            onPressed: () async {
+              _selectedCalendarDate = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime.now(),
+                lastDate: getLastDayOfNextWeek(),
+              );
+
+              if (_selectedCalendarDate == null) return;
+
+              Get.dialog(
+                AlertDialog(
+                  content: GetBuilder<MealsController>(
+                    builder: (_) {
+                      if (_.loading) {
+                        return CircularProgressIndicator();
+                      }
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: _.meals
+                            .map((e) => ListTile(
+                                  title: Text(e.name),
+                                  onTap: () {
+                                    _selectedCalendarMeal = e;
+                                    Get.back();
+                                  },
+                                ))
+                            .toList(),
+                      );
+                    },
+                  ),
+                ),
+              );
+            },
+          ),
           IconButton(
             icon: Icon(Icons.save, size: 32),
             onPressed: () {
@@ -81,9 +133,49 @@ class RecipeDetailPage extends StatelessWidget {
                 Get.dialog(
                   AreYouSureDialog(
                     onYes: () async {
-                      await _saveRecipe(arguments, selectedCategory);
+                      try {
+                        final newRecipe = await _saveRecipe(
+                          selectedRecipe,
+                          selectedCategory,
+                        );
 
-                      Get.offNamed(RecipesListPage.routeName);
+                        Get.back();
+
+                        if (selectedRecipe == null) {
+                          Get.rawSnackbar(
+                            message: translate(
+                              "recipe_detail_page.recipe_created_successfuly",
+                            ),
+                          );
+                        } else {
+                          Get.rawSnackbar(
+                            message: translate(
+                              "recipe_detail_page.recipe_updated_successfuly",
+                            ),
+                          );
+                        }
+
+                        if (_selectedCalendarDate != null &&
+                            _selectedCalendarMeal != null) {
+                          await _storeCalendarCell(
+                            selectedMeal: _selectedCalendarMeal!,
+                            selectedRecipe: newRecipe,
+                          );
+                        }
+                      } on RelationRecipeMealException catch (e) {
+                        Get.rawSnackbar(message: e.message);
+                      } on SaveNewRecipeException catch (e) {
+                        Get.rawSnackbar(message: e.message);
+                      } on DeleteRecipeException catch (e) {
+                        Get.rawSnackbar(message: e.message);
+                      } on UpdateRecipeDataException catch (e) {
+                        Get.rawSnackbar(message: e.message);
+                      }
+
+                      Get.offNamedUntil(
+                        RecipesListPage.routeName,
+                        (route) => false,
+                      );
                     },
                   ),
                 );
@@ -133,7 +225,7 @@ class RecipeDetailPage extends StatelessWidget {
               GetBuilder<MealsController>(
                 builder: (_) {
                   return _MealDropdownList(
-                    _mealsController.meals,
+                    _mealsController.meals.skip(0).toList(),
                     onChanged: (List<Meal> meals) {
                       _mealsController.selectedMeals = meals;
                     },
@@ -184,7 +276,7 @@ class RecipeDetailPage extends StatelessWidget {
     );
   }
 
-  Future<void> _saveRecipe(
+  Future<Recipe> _saveRecipe(
       Recipe? arguments, FoodCategory? selectedCategory) async {
     final recipeMap = <String, dynamic>{
       "name": _recipeNameCtrl.text.trim(),
@@ -195,19 +287,18 @@ class RecipeDetailPage extends StatelessWidget {
       "meals": _mealsController.selectedMeals.map((e) => e.toJson()).toList(),
     };
 
-    /*if (arguments != null) {
-      recipeMap["id"] = arguments.id;
-    }*/
-
     final recipe = Recipe.fromJson(recipeMap);
 
     // It checks if the recipe doesn't exist
     if (arguments?.id == null) {
-      final insertedId =
-          await _recipeController.newRecipe(Recipe.fromJson(recipeMap));
+      final insertedId = await _recipeController.newRecipe(
+        Recipe.fromJson(recipeMap),
+      );
 
       // It checks if db query successes
       if (insertedId > 0) {
+        recipe.id = insertedId;
+
         final selectedMeals =
             _mealsController.selectedMeals.where((e) => e.selected).toList();
         final insertResult =
@@ -216,17 +307,15 @@ class RecipeDetailPage extends StatelessWidget {
         if (insertResult) {
           Get.back(); // It removes the AreYouSure popup widget
 
-          Get.rawSnackbar(
-            message: translate("recipe_detail_page.recipe_created_successfuly"),
-          );
+          return recipe;
         } else {
-          Get.rawSnackbar(
-            message: translate("recipe_detail_page.error_relation_recipe_meal"),
+          throw RelationRecipeMealException(
+            translate("recipe_detail_page.error_relation_recipe_meal"),
           );
         }
       } else {
-        Get.rawSnackbar(
-          message: translate("recipe_detail_page.error_saving_new_recipe"),
+        throw SaveNewRecipeException(
+          translate("recipe_detail_page.error_saving_new_recipe"),
         );
       }
     } else {
@@ -238,15 +327,14 @@ class RecipeDetailPage extends StatelessWidget {
       );
 
       // If mode = editing existing recipe, we delete
-      final deleteResult =
-          await _mealsController.deleteMealsByRecipeId(recipe.id!);
+      final deleteResult = await _mealsController.deleteMealsByRecipeId(
+        recipe.id!,
+      );
 
       if (!deleteResult) {
-        Get.rawSnackbar(
-          message: translate("recipe_detail_page.error_deleting_recipe"),
+        throw DeleteRecipeException(
+          translate("recipe_detail_page.error_deleting_recipe"),
         );
-
-        return;
       }
 
       // Ensure to insert the SELECTED meals on the screen
@@ -264,26 +352,32 @@ class RecipeDetailPage extends StatelessWidget {
       // It checks if update query is success
       if (updatedId) {
         if (recipeMealsResult) {
-          Get.rawSnackbar(
-            message: translate(
-              "recipe_detail_page.recipe_updated_successfuly",
-            ),
-          );
+          return recipe;
         } else {
-          Get.rawSnackbar(
-            message: translate(
-              "recipe_detail_page.error_relation_recipe_meal",
-            ),
+          throw RelationRecipeMealException(
+            translate("recipe_detail_page.error_relation_recipe_meal"),
           );
         }
       } else {
-        Get.rawSnackbar(
-          message: translate(
-            "recipe_detail_page.error_update_recipe_data",
-          ),
+        throw UpdateRecipeDataException(
+          translate("recipe_detail_page.error_update_recipe_data"),
         );
       }
     }
+  }
+
+  Future<void> _storeCalendarCell({
+    required Meal selectedMeal,
+    required Recipe selectedRecipe,
+  }) async {
+    final calendarData = FilledCalendarCell(
+      recipeId: selectedRecipe.id,
+      mealId: selectedMeal.id,
+      recipeName: selectedRecipe.name!,
+      date: _selectedCalendarDate!,
+    );
+
+    await _calendarCtrl.insertRecipeInCalendar(calendarData);
   }
 }
 
@@ -300,8 +394,14 @@ class _MealDropdownList extends StatefulWidget {
 class _MealDropdownListState extends State<_MealDropdownList> {
   @override
   Widget build(BuildContext context) {
+    // It returns a meal without the one that has id = 0.
+    // A meal with id = 0 means refers to the "Sin especificar" entry
+    final meals = widget.meals.where((e) {
+      return e.id?.compareTo(0) != 0;
+    }).toList();
+
     return Column(
-      children: widget.meals
+      children: meals
           .map(
             (e) => CheckboxListTile(
               value: e.selected,
@@ -341,12 +441,14 @@ class _FoodTypeList extends StatefulWidget {
 class _FoodTypeListState extends State<_FoodTypeList> {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: widget.categories.map((e) {
-        /*if (e.id == widget.selectedCategory!.id) {
-          e.selected = true;
-        }*/
+    // It returns a category without the one that has id = 0.
+    // A category with id = 0 means refers to the "Sin especificar" entry
+    final categories = widget.categories.where((e) {
+      return e.id?.compareTo(0) != 0;
+    }).toList();
 
+    return Column(
+      children: categories.map((e) {
         return RadioListTile<FoodCategory>(
           value: e,
           groupValue: widget.selectedCategory,

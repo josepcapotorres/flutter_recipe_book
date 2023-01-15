@@ -1,7 +1,7 @@
 import 'package:flutter_myrecipesapp/controllers/base_controller.dart';
 import 'package:flutter_myrecipesapp/controllers/database_controller.dart';
 import 'package:flutter_myrecipesapp/models/food_category.dart';
-import 'package:get/get.dart';
+import 'package:flutter_translate/flutter_translate.dart';
 
 class FoodCategoriesController extends BaseController {
   List<FoodCategory> categories = [];
@@ -20,6 +20,13 @@ class FoodCategoriesController extends BaseController {
       categories =
           await DBController.instance.getFoodCategoriesByRecipeId(recipeId);
     }
+
+    final noFiltedCategory = FoodCategory();
+    noFiltedCategory
+      ..id = 0
+      ..name = translate("common.no_specified");
+
+    categories.insert(0, noFiltedCategory);
 
     loading = false;
 
