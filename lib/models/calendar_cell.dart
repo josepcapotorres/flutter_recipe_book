@@ -1,7 +1,11 @@
 class CalendarCell {
   late DateTime date;
+  int? mealId;
 
-  CalendarCell({required this.date});
+  CalendarCell({
+    required this.date,
+    required this.mealId,
+  });
 
   bool get isEmptyCell => this is EmptyCalendarCell;
 }
@@ -19,7 +23,7 @@ class FilledCalendarCell extends CalendarCell {
     required this.mealId,
     required this.recipeName,
     required this.date,
-  }) : super(date: date);
+  }) : super(date: date, mealId: mealId);
 
   bool get isRecipeEmpty {
     return this is EmptyCalendarCell;
@@ -50,6 +54,10 @@ class FilledCalendarCell extends CalendarCell {
 
 class EmptyCalendarCell extends CalendarCell {
   DateTime date;
+  int? mealId;
 
-  EmptyCalendarCell({required this.date}) : super(date: date);
+  EmptyCalendarCell({
+    required this.date,
+    required this.mealId,
+  }) : super(date: date, mealId: mealId);
 }

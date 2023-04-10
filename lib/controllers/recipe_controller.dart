@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter_myrecipesapp/controllers/calendar_controller.dart';
-import 'package:flutter_myrecipesapp/controllers/database_controller.dart';
 import 'package:flutter_myrecipesapp/controllers/meals_controller.dart';
 import 'package:flutter_myrecipesapp/models/food_category.dart';
 import 'package:flutter_myrecipesapp/models/meals.dart';
@@ -12,6 +11,7 @@ import 'package:flutter_myrecipesapp/models/recipe_meal.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../db/db.dart';
 import 'base_controller.dart';
 
 class RecipeController extends BaseController {
@@ -22,6 +22,19 @@ class RecipeController extends BaseController {
   final _foodCategoriesFileName = "food_categories.json";
   final _mealsFileName = "meals.json";
   final _recipeMealFileName = "recipe_meals.json";
+  late RecipeTable _recipeManager;
+  late FoodCategoryTable _foodCategoryManager;
+  late MealTable _mealManager;
+  late RecipeMealTable _recipeMealManager;
+
+  @override
+  void onInit() {
+    super.onInit();
+
+    _recipeManager = Get.find<RecipeTable>();
+    _foodCategoryManager = Get.find<FoodCategoryTable>();
+    _mealManager = Get.find<MealTable>();
+  }
 
   Future<void> fetchRecipeList() async {
     try {
@@ -41,7 +54,7 @@ class RecipeController extends BaseController {
   Future<void> _getRecipeList() async {
     final mealsController = Get.find<MealsController>();
 
-    recipeList = await DBController.instance.getRecipes();
+    recipeList = await _recipeManager.getRecipes();
 
     for (int i = 0; i < recipeList.length; i++) {
       final recipeMeals = await mealsController.getMeals(
@@ -54,14 +67,14 @@ class RecipeController extends BaseController {
   }
 
   Future<Recipe?> getRecipeById(int recipeId) async {
-    return await DBController.instance.getRecipeById(recipeId);
+    return await _recipeManager.getRecipeById(recipeId);
   }
 
   Future<int> newRecipe(Recipe recipe) async {
     int result;
 
     try {
-      result = await DBController.instance.newRecipe(recipe);
+      result = await _recipeManager.newRecipe(recipe);
     } catch (e) {
       result = 0;
     }
@@ -73,7 +86,7 @@ class RecipeController extends BaseController {
     final calendarCtrl = Get.find<CalendarController>();
 
     // It deletes recipe from recipe table
-    final success = await DBController.instance.deleteRecipe(recipeId);
+    final success = await _recipeManager.deleteRecipe(recipeId);
 
     if (!success) {
       return false;
@@ -81,13 +94,15 @@ class RecipeController extends BaseController {
 
     fetchRecipeList();
 
-    // It deletes recipe from calendar table
-    final deleted = await calendarCtrl.deleteRecipeInCalendar(
-      recipeId: recipeId,
-    );
+    if (await calendarCtrl.isRecipeInCalendarBetweenDates(recipeId: recipeId)) {
+      // It deletes recipe from calendar table
+      final deleted = await calendarCtrl.deleteRecipeInCalendar(
+        recipeId: recipeId,
+      );
 
-    if (!deleted) {
-      return false;
+      if (!deleted) {
+        return false;
+      }
     }
 
     // It refreshes calendar data on the screen
@@ -162,7 +177,7 @@ class RecipeController extends BaseController {
 
   Future<void> _exportRecipes(
       Directory appDownloadDir, String recipesFileName) async {
-    final recipes = await DBController.instance.getRecipes();
+    final recipes = await _recipeManager.getRecipes();
     final recipesMap = recipes.map((e) => e.toJson()).toList();
     final file =
         File("${appDownloadDir.path}${Platform.pathSeparator}$recipesFileName");
@@ -176,7 +191,7 @@ class RecipeController extends BaseController {
 
   Future<void> _exportFoodCategories(
       Directory appDownloadDir, String foodCategoriesFileName) async {
-    final foodCategories = await DBController.instance.getFoodCategories();
+    final foodCategories = await _foodCategoryManager.getFoodCategories();
     final foodCategoriesMap = foodCategories.map((e) => e.toJson()).toList();
     final file = File(
         "${appDownloadDir.path}${Platform.pathSeparator}$foodCategoriesFileName");
@@ -190,7 +205,7 @@ class RecipeController extends BaseController {
 
   Future<void> _exportMeals(
       Directory appDownloadDir, String mealsFileName) async {
-    final meals = await DBController.instance.getMeals();
+    final meals = await _mealManager.getMeals();
     final mealsMap = meals.map((e) => e.toJson()).toList();
     final file =
         File("${appDownloadDir.path}${Platform.pathSeparator}$mealsFileName");
@@ -204,7 +219,7 @@ class RecipeController extends BaseController {
 
   Future<void> _exportRecipeMeals(
       Directory appDownloadDir, String recipeMealsFileName) async {
-    final recipeMeals = await DBController.instance.getRecipeMeals();
+    final recipeMeals = await _recipeMealManager.getRecipeMeals();
     final recipeMealsMap = recipeMeals.map((e) => e.toJson()).toList();
     final file = File(
         "${appDownloadDir.path}${Platform.pathSeparator}$recipeMealsFileName");
@@ -260,7 +275,7 @@ class RecipeController extends BaseController {
     }
 
     // Get categories from db
-    final categoriesFromDb = await DBController.instance.getFoodCategories();
+    final categoriesFromDb = await _foodCategoryManager.getFoodCategories();
 
     // Get categories from the exported file
     final categoriesFileContent = await categoriesFile.readAsString();
@@ -272,7 +287,7 @@ class RecipeController extends BaseController {
       if (!categoriesFromDb.contains(currCatFromFile)) {
         // Insert the element that's in the exported file, but not in the local db
         final result =
-            await DBController.instance.newFoodCategory(currCatFromFile);
+            await _foodCategoryManager.newFoodCategory(currCatFromFile);
         print("Categoria ${currCatFromFile.name} creat? $result");
       }
     }
@@ -290,7 +305,7 @@ class RecipeController extends BaseController {
     }
 
     // Get meals from db
-    final mealsFromDb = await DBController.instance.getMeals();
+    final mealsFromDb = await _mealManager.getMeals();
 
     // Get meals from the exported file
     final mealsFileContent = await mealsFile.readAsString();
@@ -301,7 +316,7 @@ class RecipeController extends BaseController {
     for (final currMealFromFile in mealsFromFile) {
       if (!mealsFromDb.contains(currMealFromFile)) {
         // Insert the element that's in the exported file, but not in the local db
-        final result = await DBController.instance.newMeal(currMealFromFile);
+        final result = await _mealManager.newMeal(currMealFromFile);
         print("Àpat ${currMealFromFile.name} creat? $result");
       }
     }
@@ -319,7 +334,7 @@ class RecipeController extends BaseController {
     }
 
     // Get categories from db
-    final recipesFromDb = await DBController.instance.getRecipes();
+    final recipesFromDb = await _recipeManager.getRecipes();
 
     // Get recipes from the exported file
     final recipesFileContent = await recipesFile.readAsString();
@@ -330,8 +345,7 @@ class RecipeController extends BaseController {
     for (final currRecipeFromFile in recipesFromFile) {
       if (!recipesFromDb.contains(currRecipeFromFile)) {
         // Insert the element that's in the exported file, but not in the local db
-        final result =
-            await DBController.instance.newRecipe(currRecipeFromFile);
+        final result = await _recipeManager.newRecipe(currRecipeFromFile);
 
         print("Recepta ${currRecipeFromFile.name} creada? ${result == 1}");
       }
@@ -351,7 +365,7 @@ class RecipeController extends BaseController {
     }
 
     // Get categories from db
-    final recipeMealsFromDb = await DBController.instance.getRecipeMeals();
+    final recipeMealsFromDb = await _recipeMealManager.getRecipeMeals();
 
     // Get recipes from the exported file
     final recipeMealsFileContent = await recipeMealsFile.readAsString();
@@ -362,11 +376,13 @@ class RecipeController extends BaseController {
     for (final currRecipeMealFromFile in recipeMealsFromFile) {
       if (!recipeMealsFromDb.contains(currRecipeMealFromFile)) {
         // Insert the element that's in the exported file, but not in the local db
-        final result = await DBController.instance
-            .insertRecipeMeal(currRecipeMealFromFile);
+        final result = await _recipeMealManager.insertRecipeMeal(
+          currRecipeMealFromFile,
+        );
 
         print(
-            "RecipeMeal ${jsonEncode(currRecipeMealFromFile.toJson())} creat? $result");
+          "RecipeMeal ${jsonEncode(currRecipeMealFromFile.toJson())} creat? $result",
+        );
       }
     }
   }

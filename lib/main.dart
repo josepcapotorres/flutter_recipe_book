@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:flutter_myrecipesapp/controllers/calendar_controller.dart';
-import 'package:flutter_myrecipesapp/helpers/app_colors.dart';
-import 'package:flutter_myrecipesapp/views/pages/calendar_page.dart';
+import 'package:flutter_myrecipesapp/views/pages/recipes_list_page.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:get/get.dart';
 
-import 'controllers/food_categories_controller.dart';
-import 'controllers/meals_controller.dart';
-import 'controllers/recipe_controller.dart';
+import 'controllers/calendar_controller.dart';
+import 'controllers/controllers.dart';
+import 'db/db.dart';
+import 'helpers/app_colors.dart';
 import 'helpers/routes.dart';
+
+// TODO: Provar d'actualitzar algún camp d'una recepta existent i comprovar que es reflexi al calendari
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,9 +31,18 @@ class MyApp extends StatelessWidget {
   // TODO: Traduir TOTS els texts. Provat TOT en cada idioma
   // TODO: Provar amb dispositiu amb pantalla petita
   // TODO: En cada error produït, crear una excepció pel cas que surti per mostrar-lo per pantalla
+  // TODO: Comprovar que a totes ses taules de sa bd, es camp autonumèric no queda null al insertar una fila
 
   @override
   Widget build(BuildContext context) {
+    // Database manager
+    Get.put(RecipeTable());
+    Get.put(MealTable());
+    Get.put(FoodCategoryTable());
+    Get.put(RecipeMealTable());
+    Get.put(CalendarTable());
+
+    // Controllers
     Get.put(MealsController());
     Get.put(FoodCategoriesController());
     Get.put(RecipeController());
@@ -43,7 +53,7 @@ class MyApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: translate("common.app_name"),
-      initialRoute: CalendarPage.routeName,
+      initialRoute: RecipesListPage.routeName,
       routes: getApplicationRoutes(),
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       /*localizationsDelegates: [

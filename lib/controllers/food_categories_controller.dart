@@ -1,11 +1,21 @@
 import 'package:flutter_myrecipesapp/controllers/base_controller.dart';
-import 'package:flutter_myrecipesapp/controllers/database_controller.dart';
+import 'package:flutter_myrecipesapp/db/db.dart';
+//import 'package:flutter_myrecipesapp/db/database_manager.dart';
 import 'package:flutter_myrecipesapp/models/food_category.dart';
 import 'package:flutter_translate/flutter_translate.dart';
+import 'package:get/get.dart';
 
 class FoodCategoriesController extends BaseController {
+  late FoodCategoryTable _foodCategoryManager;
   List<FoodCategory> categories = [];
   bool loading = true;
+
+  @override
+  void onInit() {
+    super.onInit();
+
+    _foodCategoryManager = Get.find<FoodCategoryTable>();
+  }
 
   void fetchFoodCategories({int recipeId = 0}) async {
     /*loading = true;
@@ -15,11 +25,13 @@ class FoodCategoriesController extends BaseController {
     await Future.delayed(Duration(seconds: 1));*/
 
     if (recipeId == 0) {
-      categories = await DBController.instance.getFoodCategories();
+      categories = await _foodCategoryManager.getFoodCategories();
     } else {
       categories =
-          await DBController.instance.getFoodCategoriesByRecipeId(recipeId);
+          await _foodCategoryManager.getFoodCategoriesByRecipeId(recipeId);
     }
+
+    // TODO: Afegir una opció de "otros" com a primera opció sempre
 
     final noFiltedCategory = FoodCategory();
     noFiltedCategory
@@ -41,10 +53,10 @@ class FoodCategoriesController extends BaseController {
     await Future.delayed(Duration(seconds: 1));
 
     final newCategoryResult =
-        await DBController.instance.newFoodCategory(foodCategory);
+        await _foodCategoryManager.newFoodCategory(foodCategory);
 
     if (newCategoryResult) {
-      final dbCategories = await DBController.instance.getFoodCategories();
+      final dbCategories = await _foodCategoryManager.getFoodCategories();
 
       categories = dbCategories;
     }
@@ -62,10 +74,10 @@ class FoodCategoriesController extends BaseController {
     await Future.delayed(Duration(seconds: 1));
 
     final newCategoryResult =
-        await DBController.instance.deleteFoodCategory(categoryId);
+        await _foodCategoryManager.deleteFoodCategory(categoryId);
 
     if (newCategoryResult) {
-      final dbCategories = await DBController.instance.getFoodCategories();
+      final dbCategories = await _foodCategoryManager.getFoodCategories();
 
       categories = dbCategories;
     }
@@ -84,10 +96,10 @@ class FoodCategoriesController extends BaseController {
 
     try {
       final updatedResult =
-          await DBController.instance.updateFoodCategory(foodCategory);
+          await _foodCategoryManager.updateFoodCategory(foodCategory);
 
       if (updatedResult) {
-        final dbCategories = await DBController.instance.getFoodCategories();
+        final dbCategories = await _foodCategoryManager.getFoodCategories();
 
         categories = dbCategories;
       }

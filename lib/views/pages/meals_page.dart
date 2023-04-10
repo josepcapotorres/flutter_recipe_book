@@ -7,6 +7,12 @@ import 'package:get/get.dart';
 
 import '../widgets/are_you_sure_dialog.dart';
 
+/*
+  TODO: Possibilitat de poder ordenar els àpats. Per tant, cada vegada que
+  s'hagi de mostrar un àpat, es mostri ordenat per aquest ordre
+
+ */
+
 class FoodMealsPage extends StatefulWidget {
   static const String routeName = "meals";
 
@@ -26,6 +32,15 @@ class _FoodMealsPageState extends State<FoodMealsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final List<String> _itSkills = [
+      "IT",
+      "Programming",
+      "Media",
+      "System Analyst",
+      "Pharma",
+      "Business Executive"
+    ];
+
     return BasePage(
       appBar: AppBar(
         title: Text(translate("meals_page.title")),
@@ -36,12 +51,24 @@ class _FoodMealsPageState extends State<FoodMealsPage> {
                 child: CircularProgressIndicator(),
               )
             : _mealsController.meals.isNotEmpty
-                ? ListView.separated(
+                ? ReorderableListView.builder(
                     itemCount: _mealsController.meals.length,
-                    separatorBuilder: (_, __) => Divider(),
                     itemBuilder: (_, i) => _Meal(
                       _mealsController.meals[i],
+                      key: Key("$i"),
                     ),
+                    onReorder: (oldIndex, newIndex) async {
+                      if (oldIndex < newIndex) {
+                        newIndex -= 1;
+                      }
+
+                      await _mealsController.changeMealOrder(
+                        oldMeal: _mealsController.meals[oldIndex],
+                        newMeal: _mealsController.meals[newIndex],
+                      );
+
+                      _mealsController.fetchMeals();
+                    },
                   )
                 : Center(
                     child: Text(translate("common.no_results")),
@@ -61,12 +88,14 @@ class _FoodMealsPageState extends State<FoodMealsPage> {
 class _Meal extends StatelessWidget {
   final _mealsControllers = Get.find<MealsController>();
   final Meal meal;
+  final Key key;
 
-  _Meal(this.meal);
+  _Meal(this.meal, {required this.key});
 
   @override
   Widget build(BuildContext context) {
     return ListTile(
+      key: key,
       title: Text(meal.name),
       onTap: () {
         showDialog(

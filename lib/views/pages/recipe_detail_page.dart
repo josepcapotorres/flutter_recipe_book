@@ -1,18 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_myrecipesapp/controllers/calendar_controller.dart';
-import 'package:flutter_myrecipesapp/controllers/database_controller.dart';
-import 'package:flutter_myrecipesapp/controllers/food_categories_controller.dart';
-import 'package:flutter_myrecipesapp/controllers/meals_controller.dart';
-import 'package:flutter_myrecipesapp/controllers/recipe_controller.dart';
+import 'package:flutter_myrecipesapp/controllers/controllers.dart';
 import 'package:flutter_myrecipesapp/helpers/date_time_helper.dart';
-import 'package:flutter_myrecipesapp/models/calendar_cell.dart';
-import 'package:flutter_myrecipesapp/models/food_category.dart';
-import 'package:flutter_myrecipesapp/models/meals.dart';
-import 'package:flutter_myrecipesapp/models/recipe.dart';
+import 'package:flutter_myrecipesapp/models/models.dart';
 import 'package:flutter_myrecipesapp/views/widgets/base_page.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:get/get.dart';
 
+import '../../db/db.dart';
 import '../../exceptions/recipe_exceptions.dart';
 import '../../helpers/format_helper.dart';
 import '../widgets/are_you_sure_dialog.dart';
@@ -133,21 +127,27 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                 Get.dialog(
                   AreYouSureDialog(
                     onYes: () async {
-                      try {
-                        final newRecipe = await _saveRecipe(
-                          selectedRecipe,
-                          selectedCategory,
-                        );
+                      int recipeId;
 
+                      try {
                         Get.back();
 
                         if (selectedRecipe == null) {
+                          final newRecipe = await _saveRecipe(
+                            selectedRecipe,
+                            selectedCategory,
+                          );
+
+                          recipeId = newRecipe.id!;
+
                           Get.rawSnackbar(
                             message: translate(
                               "recipe_detail_page.recipe_created_successfuly",
                             ),
                           );
                         } else {
+                          recipeId = selectedRecipe.id!;
+
                           Get.rawSnackbar(
                             message: translate(
                               "recipe_detail_page.recipe_updated_successfuly",
@@ -157,10 +157,47 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
 
                         if (_selectedCalendarDate != null &&
                             _selectedCalendarMeal != null) {
-                          await _storeCalendarCell(
-                            selectedMeal: _selectedCalendarMeal!,
-                            selectedRecipe: newRecipe,
+                          final isRecipeInCalendar = await _calendarCtrl
+                              .isRecipeInCalendarBetweenDates(
+                            recipeId: recipeId,
                           );
+
+                          /*
+                          POSSIBLES ESTATS:
+                          1) Venc per primera vegada a guardar una recepta.
+                          2) Recepta ja guardada i encara no està dins es calendari
+                          3) Recepta ja guardada i ja està dins es calendari
+                          */
+
+                          print("isRecipeInCalendar: $isRecipeInCalendar");
+                          print(
+                              "selectedRecipe != null: ${selectedRecipe != null}");
+
+                          if (isRecipeInCalendar && selectedRecipe != null) {
+                            await _updateCalendarCell(
+                              selectedMeal: _selectedCalendarMeal!,
+                              selectedRecipe: selectedRecipe,
+                            );
+                          } else if (!isRecipeInCalendar) {
+                            final recipeMap = <String, dynamic>{
+                              "id": recipeId,
+                              "name": _recipeNameCtrl.text.trim(),
+                              "n_persons": _nPersonsCtrl.text.trim(),
+                              "ings_and_quants": _ingsQuantsCtrl.text.trim(),
+                              "steps_reproduce": _stepsCookingCtrl.text.trim(),
+                              "food_category_id": selectedCategory?.id,
+                              "meals": _mealsController.selectedMeals
+                                  .map((e) => e.toJson())
+                                  .toList(),
+                            };
+
+                            final recipeData = Recipe.fromJson(recipeMap);
+
+                            await _storeCalendarCell(
+                              selectedMeal: _selectedCalendarMeal!,
+                              selectedRecipe: recipeData,
+                            );
+                          }
                         }
                       } on RelationRecipeMealException catch (e) {
                         Get.rawSnackbar(message: e.message);
@@ -319,10 +356,10 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
         );
       }
     } else {
-      //recipeMap["id"] = arguments!.id;
       recipe.id = arguments!.id;
+      final recipeTable = Get.find<RecipeTable>();
 
-      final updatedId = await DBController.instance.updateRecipe(
+      final updatedId = await recipeTable.updateRecipe(
         recipe,
       );
 
@@ -378,6 +415,33 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
     );
 
     await _calendarCtrl.insertRecipeInCalendar(calendarData);
+  }
+
+  // TODO: Refactor a controller
+  Future<void> _updateCalendarCell({
+    required Meal selectedMeal,
+    required Recipe selectedRecipe,
+  }) async {
+    final calendarTable = Get.find<CalendarTable>();
+    final calendarData = await calendarTable.getCalendarData();
+
+    final selectedCalendarCell = calendarData
+        .where((e) =>
+            e.recipeId == selectedRecipe.id! &&
+            e.date == _selectedCalendarDate!)
+        .toList();
+
+    if (selectedCalendarCell.isNotEmpty) {
+      final calendarCellData = FilledCalendarCell(
+        id: selectedCalendarCell.first.id!,
+        recipeId: selectedRecipe.id,
+        mealId: selectedMeal.id,
+        recipeName: selectedRecipe.name!,
+        date: _selectedCalendarDate!,
+      );
+
+      await _calendarCtrl.updateRecipeInCalendar(calendarCellData);
+    }
   }
 }
 

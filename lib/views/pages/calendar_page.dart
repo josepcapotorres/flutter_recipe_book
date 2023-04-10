@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_myrecipesapp/controllers/calendar_controller.dart';
-import 'package:flutter_myrecipesapp/controllers/database_controller.dart';
 import 'package:flutter_myrecipesapp/controllers/recipe_controller.dart';
+import 'package:flutter_myrecipesapp/db/db.dart';
 import 'package:flutter_myrecipesapp/enums/calendar_week_displayed.dart';
 import 'package:flutter_myrecipesapp/models/calendar_cell.dart';
 import 'package:flutter_myrecipesapp/views/pages/recipe_detail_page.dart';
@@ -300,22 +300,16 @@ class _MealName extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String mealName;
+    final mealTable = Get.find<MealTable>();
 
-    if (recipeDay is FilledCalendarCell) {
-      final filledCalendarCell = recipeDay as FilledCalendarCell;
-
-      return FutureBuilder(
-        future: DBController.instance.getMealById(filledCalendarCell.mealId!),
-        builder: (_, AsyncSnapshot<Meal?> snapshot) {
-          if (snapshot.hasData)
-            return Text(snapshot.data!.name);
-          else
-            return Text("No especificado");
-        },
-      );
-    } else {
-      return Text("No especificado");
-    }
+    return FutureBuilder(
+      future: mealTable.getMealById(recipeDay.mealId!),
+      builder: (_, AsyncSnapshot<Meal?> snapshot) {
+        if (snapshot.hasData)
+          return Text(snapshot.data!.name);
+        else
+          return Text("#No especificado");
+      },
+    );
   }
 }

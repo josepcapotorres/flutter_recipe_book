@@ -1,10 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_myrecipesapp/controllers/food_categories_controller.dart';
-import 'package:flutter_myrecipesapp/controllers/meals_controller.dart';
-import 'package:flutter_myrecipesapp/controllers/recipe_controller.dart';
-import 'package:flutter_myrecipesapp/models/food_category.dart';
-import 'package:flutter_myrecipesapp/models/meals.dart';
-import 'package:flutter_myrecipesapp/models/recipe.dart';
+import 'package:flutter_myrecipesapp/controllers/controllers.dart';
+import 'package:flutter_myrecipesapp/models/models.dart';
 import 'package:flutter_myrecipesapp/views/pages/recipe_detail_page.dart';
 import 'package:flutter_myrecipesapp/views/widgets/are_you_sure_dialog.dart';
 import 'package:flutter_myrecipesapp/views/widgets/base_page.dart';
@@ -13,7 +9,7 @@ import 'package:get/get.dart';
 
 import '../../helpers/app_colors.dart';
 
-class RecipesListPage extends StatelessWidget /*with WidgetsBindingObserver*/ {
+class RecipesListPage extends StatelessWidget {
   static final routeName = "recipes_list";
 
   final _recipeController = Get.find<RecipeController>();

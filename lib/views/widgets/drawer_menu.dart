@@ -13,48 +13,53 @@ class DrawerMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      child: Column(
-        children: [
-          DrawerHeader(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Flexible(
-                  child: Image.asset(
-                    getAssetIconFilePath("launcher_icon.png"),
-                  ),
+      child: SingleChildScrollView(
+        child: Container(
+          color: Colors.white,
+          child: Column(
+            children: [
+              DrawerHeader(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(
+                      child: Image.asset(
+                        getAssetIconFilePath("launcher_icon.png"),
+                      ),
+                    ),
+                    SizedBox(height: 15, width: double.infinity),
+                    Text(translate("common.app_name")),
+                  ],
                 ),
-                SizedBox(height: 15, width: double.infinity),
-                Text(translate("common.app_name")),
-              ],
-            ),
+              ),
+              _DrawerItem(
+                title: translate("recipes_list_page.title"),
+                onTap: () => Get.offNamed(RecipesListPage.routeName),
+              ),
+              Divider(),
+              _DrawerItem(
+                title: translate("calendar_page.title"),
+                onTap: () => Get.offNamed(CalendarPage.routeName),
+              ),
+              Divider(),
+              _DrawerItem(
+                title: translate("random_food_page.title"),
+                onTap: () => Get.offNamed(RandomFoodPage.routeName),
+              ),
+              Divider(),
+              _DrawerItem(
+                title: translate("food_categories_page.title"),
+                onTap: () => Get.offNamed(FoodCategoriesPage.routeName),
+              ),
+              Divider(),
+              _DrawerItem(
+                title: translate("meals_page.title"),
+                onTap: () => Get.offNamed(FoodMealsPage.routeName),
+              ),
+            ],
           ),
-          _DrawerItem(
-            title: translate("recipes_list_page.title"),
-            onTap: () => Get.offNamed(RecipesListPage.routeName),
-          ),
-          Divider(),
-          _DrawerItem(
-            title: translate("calendar_page.title"),
-            onTap: () => Get.offNamed(CalendarPage.routeName),
-          ),
-          Divider(),
-          _DrawerItem(
-            title: translate("random_food_page.title"),
-            onTap: () => Get.offNamed(RandomFoodPage.routeName),
-          ),
-          Divider(),
-          _DrawerItem(
-            title: translate("food_categories_page.title"),
-            onTap: () => Get.offNamed(FoodCategoriesPage.routeName),
-          ),
-          Divider(),
-          _DrawerItem(
-            title: translate("meals_page.title"),
-            onTap: () => Get.offNamed(FoodMealsPage.routeName),
-          ),
-        ],
+        ),
       ),
     );
   }
