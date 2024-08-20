@@ -33,16 +33,41 @@ class DatabaseManager {
 
   Future<void> _onCreate(Database db, int version) async {
     await db.execute('''
+      CREATE TABLE ingredient (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
+      CREATE TABLE food_category (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL
+      )
+    ''');
+
+    await db.execute('''
           CREATE TABLE recipe (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
             n_persons INTEGER NOT NULL,
-            ings_and_quants TEXT NOT NULL,
             steps_reproduce TEXT NOT NULL,
             food_category_id INTEGER,
             FOREIGN KEY(food_category_id) REFERENCES food_category(id)
           )
           ''');
+
+    await db.execute('''
+      CREATE TABLE recipe_ingredient (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        idIngredient INTEGER,
+        unit TEXT NOT NULL,
+        quantityIngredient REAL NOT NULL,
+        idRecipe INTEGER,
+        FOREIGN KEY(idIngredient) REFERENCES ingredient(id),
+        FOREIGN KEY(idRecipe) REFERENCES recipe(id)
+      )
+    ''');
 
     await db.execute('''
       CREATE TABLE meal (
@@ -62,13 +87,6 @@ class DatabaseManager {
       )
     ''');
 
-    await db.execute('''
-      CREATE TABLE food_category (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL
-      )
-    ''');
-
     await db.execute("""
       CREATE TABLE calendar (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -80,6 +98,12 @@ class DatabaseManager {
       )
     """);
 
+    // TODO: Casos d'ús
+    // 1. Quan tens registres a bd, exportar i importar els mateixos registres sense haver fet cap canvi entre aquests passos. PROVAT I FUNCIONA
+    // 2. Quan tens registres a bd, exportar. Crear un registre en cada taula i exportar. Importar i hauria d'haver els mateixos registres que abans.
+    // 3. Exportar dades d'un punt en concret. Buidar tota cache possible de la app i importar.
+
+    // He provat de modificar l'index des de la pantalla de llistat de meals i tot està correcte en aquesta part
     await db.execute(
         "INSERT INTO meal (name, order_index) VALUES ('${translate("database.breakfast")}', 1)");
     await db.execute(
