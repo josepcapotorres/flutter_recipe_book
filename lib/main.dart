@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_myrecipesapp/views/pages/recipes_list_page.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:get/get.dart';
 
-import 'controllers/calendar_controller.dart';
 import 'controllers/controllers.dart';
 import 'db/db.dart';
 import 'helpers/app_colors.dart';
 import 'helpers/routes.dart';
 
+// TODO: Després del canvi amb els ingredients, QUE JA FUNCIONA, arreglar afegir recepta a calendari. La part dels ingredients ha canviat.
 // TODO: Provar d'actualitzar algún camp d'una recepta existent i comprovar que es reflexi al calendari
 
 void main() async {
@@ -19,6 +20,10 @@ void main() async {
     fallbackLocale: 'en_US',
     supportedLocales: ['en_US', 'es', 'ca'],
   );
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
 
   runApp(LocalizedApp(delegate, MyApp()));
 
@@ -41,14 +46,16 @@ class MyApp extends StatelessWidget {
     Get.put(FoodCategoryTable());
     Get.put(RecipeMealTable());
     Get.put(CalendarTable());
+    Get.put(IngredientTable());
+    Get.put(RecipeIngredientTable());
 
     // Controllers
     Get.put(MealsController());
     Get.put(FoodCategoriesController());
     Get.put(RecipeController());
     Get.put(CalendarController());
-
-    //final localizationDelegate = LocalizedApp.of(context).delegate;
+    Get.put(IngredientController());
+    Get.put(RecipeIngredientController());
 
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
@@ -56,22 +63,35 @@ class MyApp extends StatelessWidget {
       initialRoute: RecipesListPage.routeName,
       routes: getApplicationRoutes(),
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      /*localizationsDelegates: [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        localizationDelegate
-      ],*/
-      //supportedLocales: localizationDelegate.supportedLocales,
-      //locale: localizationDelegate.currentLocale,
       theme: _appThemeData,
     );
   }
 
   final _appThemeData = ThemeData(
+    scaffoldBackgroundColor: Colors.white,
     colorScheme: ColorScheme.fromSeed(
       primary: AppColors.primaryColor,
       seedColor: AppColors.primaryColor,
       secondary: AppColors.primaryColorDark,
+    ),
+    appBarTheme: AppBarTheme(
+      backgroundColor: AppColors.primaryColor,
+    ),
+    drawerTheme: DrawerThemeData(
+      backgroundColor: Colors.white,
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: ButtonStyle(
+        foregroundColor: WidgetStateProperty.all(AppColors.primaryColorDark),
+      ),
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ButtonStyle(
+        foregroundColor: WidgetStateProperty.resolveWith((_) => Colors.black),
+        textStyle: WidgetStateProperty.resolveWith(
+          (_) => TextStyle(fontSize: 16),
+        ),
+      ),
     ),
   );
 }
