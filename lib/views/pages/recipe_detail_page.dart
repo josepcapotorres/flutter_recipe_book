@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_myrecipesapp/controllers/controllers.dart';
-import 'package:flutter_myrecipesapp/helpers/date_time_helper.dart';
-import 'package:flutter_myrecipesapp/models/models.dart';
-import 'package:flutter_myrecipesapp/views/widgets/base_page.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:get/get.dart';
 
+import '../../controllers/controllers.dart';
 import '../../db/db.dart';
 import '../../exceptions/recipe_exceptions.dart';
+import '../../helpers/date_time_helper.dart';
 import '../../helpers/format_helper.dart';
+import '../../models/models.dart';
 import '../widgets/are_you_sure_dialog.dart';
+import '../widgets/base_page.dart';
 import 'recipes_list_page.dart';
+
+// TODO: 1- Si botó mostrar calendari, seleccionar dia que estigui recepta a calendari amb última data SI està al calendari i si està dins aquesta o la següent setmana. PROVAT I FUNCIONA
+// TODO: Si no hi és al calendari, seleccionar dia actual. FUNCIONA
+// TODO: Si guardam recepta i ja tenia guardat calendari dins aquesta o setmana que ve, modificar aquesta línia a calendari per data nova. ARA INSEREIX EL PLAT COM UN DIA MÉS. PER TANT, HI HAURÀ DOS REGISTRES EN DUES DATES DIFERENTS
 
 class RecipeDetailPage extends StatefulWidget {
   static final routeName = "recipe_detail";
@@ -24,13 +28,15 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   final _mealsController = Get.find<MealsController>();
   final _foodCategoryCtrl = Get.find<FoodCategoriesController>();
   final _recipeController = Get.find<RecipeController>();
+  final _ingredientsCtrl = Get.find<IngredientController>();
   final _calendarCtrl = Get.find<CalendarController>();
+  final _recipeIngredientsCtrl = Get.find<RecipeIngredientController>();
   final _recipeNameCtrl = TextEditingController();
   final _nPersonsCtrl = TextEditingController();
-  final _ingsQuantsCtrl = TextEditingController();
   final _stepsCookingCtrl = TextEditingController();
   DateTime? _selectedCalendarDate;
   Meal? _selectedCalendarMeal;
+  bool _methodsExecuted = false;
 
   @override
   Widget build(BuildContext context) {
@@ -42,7 +48,6 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
     if (selectedRecipe != null) {
       _recipeNameCtrl.text = selectedRecipe.name!;
       _nPersonsCtrl.text = selectedRecipe.nPersons.toString();
-      _ingsQuantsCtrl.text = selectedRecipe.ingsAndQuants;
       _stepsCookingCtrl.text = selectedRecipe.stepsReproduce;
       selectedCategory = FoodCategory();
       selectedCategory
@@ -51,12 +56,29 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
         ..selected = true;
       titlePage = selectedRecipe.name!;
 
-      _mealsController.fetchMeals(recipeId: selectedRecipe.id!);
-      _foodCategoryCtrl.fetchFoodCategories(recipeId: selectedRecipe.id!);
+      if (!_methodsExecuted) {
+        Future.microtask(() {
+          _mealsController.fetchMeals(recipeId: selectedRecipe.id!);
+          _foodCategoryCtrl.fetchFoodCategories(recipeId: selectedRecipe.id!);
+          _ingredientsCtrl.getIngredientsByRecipeId(selectedRecipe.id!);
+          _recipeIngredientsCtrl
+              .getRecipeIngredientsByRecipeId(selectedRecipe.id!);
+        });
+
+        _methodsExecuted = true;
+      }
     } else {
       titlePage = translate("recipe_detail_page.title");
-      _mealsController.fetchMeals();
-      _foodCategoryCtrl.fetchFoodCategories();
+
+      if (!_methodsExecuted) {
+        Future.microtask(() {
+          _mealsController.fetchMeals();
+          _foodCategoryCtrl.fetchFoodCategories();
+          _ingredientsCtrl.getIngredients();
+        });
+
+        _methodsExecuted = true;
+      }
     }
 
     return BasePage(
@@ -80,7 +102,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                   content: GetBuilder<MealsController>(
                     builder: (_) {
                       if (_.loading) {
-                        return CircularProgressIndicator();
+                        return CircularProgressIndicator.adaptive();
                       }
 
                       return Column(
@@ -112,14 +134,26 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
 
                 if (!_mealsController.isMealFieldValidated()) {
                   Get.rawSnackbar(
-                      message: translate("validations.empty_meals_field"));
+                    message: translate("validations.empty_meals_field"),
+                  );
                   return;
                 }
 
                 if (selectedCategory == null ||
                     selectedCategory!.selected == false) {
                   Get.rawSnackbar(
-                      message: translate("validations.empty_category_field"));
+                    message: translate("validations.empty_category_field"),
+                  );
+
+                  return;
+                }
+
+                if (_recipeIngredientsCtrl.recipeIngredients.isEmpty) {
+                  Get.rawSnackbar(
+                    message: translate(
+                      "recipe_detail_page.no_ingredient_selected",
+                    ),
+                  );
 
                   return;
                 }
@@ -133,12 +167,12 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                         Get.back();
 
                         if (selectedRecipe == null) {
-                          final newRecipe = await _saveRecipe(
+                          /*final newRecipe = await _saveRecipe(
                             selectedRecipe,
                             selectedCategory,
                           );
 
-                          recipeId = newRecipe.id!;
+                          recipeId = newRecipe.id!;*/
 
                           Get.rawSnackbar(
                             message: translate(
@@ -147,6 +181,20 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                           );
                         } else {
                           recipeId = selectedRecipe.id!;
+
+                          final updatedRecipe = Recipe(
+                            id: recipeId,
+                            name: selectedRecipe.name,
+                            nPersons: selectedRecipe.nPersons,
+                            stepsReproduce: selectedRecipe.stepsReproduce,
+                            foodCategoryId: selectedRecipe.foodCategoryId,
+                            meals: selectedRecipe.meals,
+                          );
+
+                          /*await _updateCalendarCell(
+                            selectedMeal: _selectedCalendarMeal!,
+                            selectedRecipe: updatedRecipe,
+                          );*/
 
                           Get.rawSnackbar(
                             message: translate(
@@ -157,33 +205,37 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
 
                         if (_selectedCalendarDate != null &&
                             _selectedCalendarMeal != null) {
-                          final isRecipeInCalendar = await _calendarCtrl
-                              .isRecipeInCalendarBetweenDates(
+                          /*final dateIfRecipeInCalendar = await _calendarCtrl
+                              .getDateIfRecipeInCalendarBetweenDates(
                             recipeId: recipeId,
-                          );
+                          );*/
 
                           /*
                           POSSIBLES ESTATS:
                           1) Venc per primera vegada a guardar una recepta.
                           2) Recepta ja guardada i encara no està dins es calendari
                           3) Recepta ja guardada i ja està dins es calendari
+                          ACTUALITZACIÓ de punt 3:
+                          3) Recepta ja guardada i ja està dins es calendari, però és pel mateix dia
+                          4) Recepta ja guardada i ja està dins es calendari, però és per altre dias
                           */
 
-                          print("isRecipeInCalendar: $isRecipeInCalendar");
-                          print(
-                              "selectedRecipe != null: ${selectedRecipe != null}");
-
-                          if (isRecipeInCalendar && selectedRecipe != null) {
-                            await _updateCalendarCell(
-                              selectedMeal: _selectedCalendarMeal!,
-                              selectedRecipe: selectedRecipe,
-                            );
-                          } else if (!isRecipeInCalendar) {
+                          /*if (dateIfRecipeInCalendar != null &&
+                              selectedRecipe != null) {
+                            // If it's the same datetime it means that the
+                            // modified field might be the meal
+                            if (dateIfRecipeInCalendar ==
+                                _selectedCalendarDate) {
+                              await _updateCalendarCell(
+                                selectedMeal: _selectedCalendarMeal!,
+                                selectedRecipe: selectedRecipe,
+                              );
+                            }
+                          } else if (dateIfRecipeInCalendar == null) {
                             final recipeMap = <String, dynamic>{
                               "id": recipeId,
                               "name": _recipeNameCtrl.text.trim(),
                               "n_persons": _nPersonsCtrl.text.trim(),
-                              "ings_and_quants": _ingsQuantsCtrl.text.trim(),
                               "steps_reproduce": _stepsCookingCtrl.text.trim(),
                               "food_category_id": selectedCategory?.id,
                               "meals": _mealsController.selectedMeals
@@ -197,7 +249,7 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                               selectedMeal: _selectedCalendarMeal!,
                               selectedRecipe: recipeData,
                             );
-                          }
+                          }*/
                         }
                       } on RelationRecipeMealException catch (e) {
                         Get.rawSnackbar(message: e.message);
@@ -288,14 +340,57 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
                   );
                 },
               ),
-              TextFormField(
-                controller: _ingsQuantsCtrl,
-                maxLines: 5,
-                decoration: InputDecoration(
-                  labelText: translate("recipe_detail_page.ings_and_quants"),
+              _IngredientsList(),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (_ingredientsCtrl.ingredients.isEmpty) {
+                      showAdaptiveDialog(
+                        context: context,
+                        builder: (_) {
+                          return AlertDialog(
+                            content: Text(
+                              translate(
+                                "recipe_detail_page.no_ingredients_registered",
+                              ),
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text(translate("common.cancel")),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+
+                      return;
+                    }
+
+                    final result = await showAdaptiveDialog<RecipeIngredient?>(
+                      context: context,
+                      builder: (_) {
+                        return _IngsQuantsDialog(
+                          selectedRecipe: selectedRecipe,
+                        );
+                      },
+                    );
+
+                    // If ingredient is selected and form validated before
+                    // popup has dismissed
+                    if (result != null) {
+                      _recipeIngredientsCtrl.recipeIngredients.add(result);
+                    }
+
+                    _recipeIngredientsCtrl.refreshScreen();
+                  },
+                  child: Text(
+                    translate(
+                      "recipe_detail_page.add_ings_and_quants",
+                    ).toUpperCase(),
+                  ),
                 ),
-                textCapitalization: TextCapitalization.sentences,
-                validator: _recipeController.validateEmptyField,
               ),
               TextFormField(
                 controller: _stepsCookingCtrl,
@@ -318,7 +413,6 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
     final recipeMap = <String, dynamic>{
       "name": _recipeNameCtrl.text.trim(),
       "n_persons": _nPersonsCtrl.text.trim(),
-      "ings_and_quants": _ingsQuantsCtrl.text.trim(),
       "steps_reproduce": _stepsCookingCtrl.text.trim(),
       "food_category_id": selectedCategory?.id,
       "meals": _mealsController.selectedMeals.map((e) => e.toJson()).toList(),
@@ -342,6 +436,18 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
             await _mealsController.insertRecipeMeals(insertedId, selectedMeals);
 
         if (insertResult) {
+          // Loop collection and set recipe id
+          _recipeIngredientsCtrl.fillRecipeId(recipe.id!);
+
+          final resultIngredients =
+              await _recipeIngredientsCtrl.newRecipeIngredients();
+
+          if (!resultIngredients) {
+            throw SaveRecipeIngredientException(
+              translate("recipe_detail_page.err_insert_recipe_ings"),
+            );
+          }
+
           Get.back(); // It removes the AreYouSure popup widget
 
           return recipe;
@@ -382,6 +488,8 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
         recipe.id!,
         selectedMeals,
       );
+
+      // TODO: Petició sql update a recipe_ingredient
 
       Get.back();
       Get.back();
@@ -445,6 +553,71 @@ class _RecipeDetailPageState extends State<RecipeDetailPage> {
   }
 }
 
+class _IngredientsList extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return GetBuilder<RecipeIngredientController>(
+      builder: (ingsCtrl) {
+        if (ingsCtrl.loading) {
+          return Center(
+            child: CircularProgressIndicator.adaptive(),
+          );
+        }
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(translate("recipe_detail_page.ings_and_quants")),
+            ingsCtrl.recipeIngredients.isEmpty
+                ? SizedBox(
+                    height: 100,
+                    child: Center(
+                      child: Text(
+                        translate("common.no_results"),
+                      ),
+                    ),
+                  )
+                : ListView.separated(
+                    physics: NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    itemBuilder: (_, i) => ListTile(
+                      title: Text(
+                        _getIngredientLine(ingsCtrl.recipeIngredients[i]),
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(Icons.clear),
+                        onPressed: () {
+                          ingsCtrl.removeIngredient(i);
+                        },
+                      ),
+                    ),
+                    separatorBuilder: (_, __) => Divider(),
+                    itemCount: ingsCtrl.recipeIngredients.length,
+                  ),
+            /*[
+                  Text("100g de sucre"),
+                  Divider(),
+                  Text("2 cullerades de mel"),
+                ],
+                    ),*/
+          ],
+        );
+      },
+    );
+  }
+
+  String _getIngredientLine(RecipeIngredient recipeIngredient) {
+    final quantityIngredient = removeDecimalIfPossible(
+      recipeIngredient.quantityIngredient,
+    );
+    final unit = recipeIngredient.unit.toLowerCase();
+    final ofLabel = translate("common.of");
+    final ingredientName = recipeIngredient.ingredientName?.toLowerCase();
+
+    return "$quantityIngredient $unit $ofLabel $ingredientName";
+  }
+}
+
 class _MealDropdownList extends StatefulWidget {
   final List<Meal> meals;
   final Function(List<Meal>) onChanged;
@@ -467,7 +640,7 @@ class _MealDropdownListState extends State<_MealDropdownList> {
     return Column(
       children: meals
           .map(
-            (e) => CheckboxListTile(
+            (e) => CheckboxListTile.adaptive(
               value: e.selected,
               title: Text(e.name),
               onChanged: (value) {
@@ -483,6 +656,33 @@ class _MealDropdownListState extends State<_MealDropdownList> {
             ),
           )
           .toList(),
+    );
+  }
+}
+
+class _IngredientItem extends StatelessWidget {
+  final VoidCallback onDelete;
+  final Ingredient ingredient;
+
+  const _IngredientItem(this.ingredient, {required this.onDelete});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.only(left: 5),
+      decoration: BoxDecoration(color: Color(0xFFDDDDDD)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(ingredient.name ?? "-"),
+          SizedBox(width: 5),
+          IconButton(
+            padding: EdgeInsets.zero,
+            onPressed: onDelete,
+            icon: Icon(Icons.clear),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -513,7 +713,7 @@ class _FoodTypeListState extends State<_FoodTypeList> {
 
     return Column(
       children: categories.map((e) {
-        return RadioListTile<FoodCategory>(
+        return RadioListTile.adaptive(
           value: e,
           groupValue: widget.selectedCategory,
           title: Text(e.name),
@@ -527,5 +727,179 @@ class _FoodTypeListState extends State<_FoodTypeList> {
         );
       }).toList(),
     );
+  }
+}
+
+class _IngsQuantsDialog extends StatefulWidget {
+  final Recipe? selectedRecipe;
+
+  _IngsQuantsDialog({required this.selectedRecipe});
+
+  @override
+  State<_IngsQuantsDialog> createState() => _IngsQuantsDialogState();
+}
+
+// TODO: Si recepta existent i data calendari guardat d'antelació, modifiques data i no fa res. Es queda com està
+
+class _IngsQuantsDialogState extends State<_IngsQuantsDialog> {
+  Ingredient? _selectedIng;
+  final _ingQuantityCtrl = TextEditingController();
+  final _ingUnitCtrl = TextEditingController();
+  final _ingNameCtrl = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  final _ingredientsCtrl = Get.find<IngredientController>();
+
+  @override
+  void initState() {
+    super.initState();
+
+    _ingredientsCtrl.getIngredients();
+    _selectedIng = null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: _ingQuantityCtrl,
+                    decoration: InputDecoration(
+                      labelText: translate("recipe_detail_page.quantity"),
+                    ),
+                    keyboardType:
+                        TextInputType.numberWithOptions(decimal: false),
+                    validator: (val) {
+                      final fstValidation = validateEmptyField(val);
+
+                      if (fstValidation != null) {
+                        return fstValidation;
+                      }
+
+                      return null;
+                    },
+                  ),
+                  TextFormField(
+                    controller: _ingUnitCtrl,
+                    decoration: InputDecoration(
+                      labelText: translate("recipe_detail_page.unit"),
+                    ),
+                    validator: validateEmptyField,
+                  ),
+                  TextFormField(
+                    controller: _ingNameCtrl,
+                    decoration: InputDecoration(
+                      labelText: translate(
+                        "ingredients_page.filter_by_ing_name",
+                      ),
+                    ),
+                    onChanged: (val) {
+                      print("onChanged. ing name search: ${_ingNameCtrl.text}");
+
+                      _selectedIng = null;
+
+                      _ingredientsCtrl.getIngredientsByName(
+                        recipeId: widget.selectedRecipe?.id,
+                        ingName: _ingNameCtrl.text,
+                      );
+                    },
+                  ),
+                  SizedBox(height: 5),
+                  GetBuilder<IngredientController>(
+                    builder: (_) {
+                      if (_.loading) {
+                        return Center(
+                          child: CircularProgressIndicator.adaptive(),
+                        );
+                      }
+
+                      if (_selectedIng == null) {
+                        _selectedIng = _.ingredients.firstOrNull;
+                      }
+
+                      if (_selectedIng == null) {
+                        return Text(translate("common.no_results"));
+                      }
+
+                      return DropdownButton<Ingredient>(
+                        value: _selectedIng!,
+                        items: _.ingredients.map(
+                          (e) {
+                            return DropdownMenuItem(
+                              child: Text(e.name ?? "-"),
+                              value: e,
+                            );
+                          },
+                        ).toList(),
+                        isExpanded: true,
+                        onChanged: (val) {
+                          setState(() {
+                            _selectedIng = val;
+                          });
+                        },
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () {
+            _validateForm(
+              _formKey,
+              double.parse(_ingQuantityCtrl.text.trim()),
+              _ingUnitCtrl.text.trim(),
+            );
+          },
+          child: Text(translate(
+            "ingredients_page.save_ingredient",
+          ).toUpperCase()),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(translate("common.cancel").toUpperCase()),
+        ),
+      ],
+    );
+  }
+
+  String? validateEmptyField(String? text) {
+    if (text == null) {
+      return translate("validations.unknown_error");
+    } else if (text.isNotEmpty) {
+      return null;
+    } else {
+      return translate("validations.empty_field");
+    }
+  }
+
+  void _validateForm(
+      GlobalKey<FormState> formKey, double quantity, String unit) {
+    if (formKey.currentState?.validate() ?? false) {
+      formKey.currentState?.save();
+
+      final recipeIngredientData = <String, dynamic>{
+        "idIngredient": _selectedIng!.id!,
+        "unit": unit,
+        "quantityIngredient": quantity,
+        "ingredient_name": _selectedIng!.name!,
+      };
+
+      Navigator.pop(
+        context,
+        RecipeIngredient.fromJson(recipeIngredientData),
+      );
+    }
   }
 }

@@ -33,7 +33,7 @@ class _RandomFoodPageState extends State<RandomFoodPage> {
         builder: (_) {
           if (_recipeController.loading) {
             return Center(
-              child: CircularProgressIndicator(),
+              child: CircularProgressIndicator.adaptive(),
             );
           } else if (_recipeController.recipeList.isNotEmpty) {
             return Center(

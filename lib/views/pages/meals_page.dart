@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_myrecipesapp/controllers/meals_controller.dart';
+import 'package:flutter_myrecipesapp/db/db.dart';
 import 'package:flutter_myrecipesapp/models/meals.dart';
 import 'package:flutter_myrecipesapp/views/widgets/base_page.dart';
 import 'package:flutter_translate/flutter_translate.dart';
 import 'package:get/get.dart';
 
 import '../widgets/are_you_sure_dialog.dart';
-
-/*
-  TODO: Possibilitat de poder ordenar els àpats. Per tant, cada vegada que
-  s'hagi de mostrar un àpat, es mostri ordenat per aquest ordre
-
- */
 
 class FoodMealsPage extends StatefulWidget {
   static const String routeName = "meals";
@@ -32,14 +27,15 @@ class _FoodMealsPageState extends State<FoodMealsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final List<String> _itSkills = [
-      "IT",
-      "Programming",
-      "Media",
-      "System Analyst",
-      "Pharma",
-      "Business Executive"
-    ];
+    try {
+      Get.find<MealTable>().getMeals().then((meals) {
+        meals.forEach((e) {
+          print("meal: ${e.toJson()}");
+        });
+      });
+    } catch (e) {
+      print("");
+    }
 
     return BasePage(
       appBar: AppBar(
@@ -48,7 +44,7 @@ class _FoodMealsPageState extends State<FoodMealsPage> {
       body: GetBuilder<MealsController>(
         builder: (_) => _mealsController.loading
             ? Center(
-                child: CircularProgressIndicator(),
+                child: CircularProgressIndicator.adaptive(),
               )
             : _mealsController.meals.isNotEmpty
                 ? ReorderableListView.builder(
@@ -76,7 +72,7 @@ class _FoodMealsPageState extends State<FoodMealsPage> {
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () => showDialog(
+        onPressed: () => showAdaptiveDialog(
           context: context,
           builder: (_) => _AddMealDialog(),
         ),
@@ -98,7 +94,7 @@ class _Meal extends StatelessWidget {
       key: key,
       title: Text(meal.name),
       onTap: () {
-        showDialog(
+        showAdaptiveDialog(
           context: context,
           builder: (_) => _AddMealDialog(meal: meal),
         );
@@ -157,43 +153,49 @@ class _AddMealDialog extends StatelessWidget {
               validator: _mealsController.validateEmptyField,
             ),
             SizedBox(height: 15),
-            ElevatedButton(
-              child: _ButtonText(meal),
-              onPressed: () {
-                if (meal != null && meal!.id! == 0) {
-                  Get.rawSnackbar(
-                    message: translate(
-                      "meals_page.cannot_modify_meal",
-                    ),
-                  );
-
-                  return;
-                }
-
-                final formState = _formKey.currentState;
-
-                if (formState?.validate() ?? false) {
-                  formState?.save();
-
-                  if (meal != null) {
-                    // Call update existing meal
-                    meal!.name = _mealsEditingCtrl.text.trim();
-                    _mealsController.updateMeal(meal!);
-                  } else {
-                    // Call insert new meal
-                    final meal = Meal();
-                    meal.name = _mealsEditingCtrl.text;
-
-                    _mealsController.newMeal(meal);
-                  }
-
-                  Get.back();
-                }
-              },
-            ),
           ],
         ),
       ),
+      actions: [
+        TextButton(
+          child: _ButtonText(meal),
+          onPressed: () {
+            if (meal != null && meal!.id! == 0) {
+              Get.rawSnackbar(
+                message: translate(
+                  "meals_page.cannot_modify_meal",
+                ),
+              );
+
+              return;
+            }
+
+            final formState = _formKey.currentState;
+
+            if (formState?.validate() ?? false) {
+              formState?.save();
+
+              if (meal != null) {
+                // Call update existing meal
+                meal!.name = _mealsEditingCtrl.text.trim();
+                _mealsController.updateMeal(meal!);
+              } else {
+                // Call insert new meal
+                final meal = Meal();
+                meal.name = _mealsEditingCtrl.text;
+
+                _mealsController.newMeal(meal);
+              }
+
+              Get.back();
+            }
+          },
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(translate("common.cancel").toUpperCase()),
+        ),
+      ],
     );
   }
 }

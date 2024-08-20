@@ -24,6 +24,7 @@ class CalendarPage extends StatelessWidget {
     calendarController.getCalendarData();
 
     return BasePage(
+      padding: EdgeInsets.zero,
       appBar: AppBar(
         title: Text(
           translate("calendar_page.title"),
@@ -35,12 +36,15 @@ class CalendarPage extends StatelessWidget {
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _FixedColumns(itemsWidth: itemsWidth),
-                  _ScrollableTable(itemsWidth: itemsWidth),
-                ],
+              child: Container(
+                margin: EdgeInsets.symmetric(horizontal: 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _FixedColumns(itemsWidth: itemsWidth),
+                    _ScrollableTable(itemsWidth: itemsWidth),
+                  ],
+                ),
               ),
             ),
           ),
@@ -153,7 +157,7 @@ class _ScrollableTable extends StatelessWidget {
       builder: (_) {
         if (calendarController.calendarFoodData.isEmpty) {
           return Center(
-            child: CircularProgressIndicator(),
+            child: CircularProgressIndicator.adaptive(),
           );
         }
 
@@ -308,7 +312,7 @@ class _MealName extends StatelessWidget {
         if (snapshot.hasData)
           return Text(snapshot.data!.name);
         else
-          return Text("#No especificado");
+          return Text(translate("common.no_specified"));
       },
     );
   }

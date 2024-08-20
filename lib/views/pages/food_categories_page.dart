@@ -32,7 +32,7 @@ class _FoodCategoriesPageState extends State<FoodCategoriesPage> {
       body: GetBuilder<FoodCategoriesController>(
         builder: (_) => _foodCategoriesCtrl.loading
             ? Center(
-                child: CircularProgressIndicator(),
+                child: CircularProgressIndicator.adaptive(),
               )
             : _foodCategoriesCtrl.categories.isNotEmpty
                 ? ListView.separated(
@@ -48,7 +48,7 @@ class _FoodCategoriesPageState extends State<FoodCategoriesPage> {
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
-        onPressed: () => showDialog(
+        onPressed: () => showAdaptiveDialog(
           context: context,
           builder: (_) => _AddFoodCategoryDialog(),
         ),
@@ -68,7 +68,7 @@ class _Category extends StatelessWidget {
     return ListTile(
       title: Text(category.name),
       onTap: () {
-        showDialog(
+        showAdaptiveDialog(
           context: context,
           builder: (_) => _AddFoodCategoryDialog(category: category),
         );
@@ -127,43 +127,49 @@ class _AddFoodCategoryDialog extends StatelessWidget {
               validator: _foodCategoriesCtrl.validateEmptyField,
             ),
             SizedBox(height: 15),
-            ElevatedButton(
-              child: _ButtonText(category),
-              onPressed: () {
-                if (category != null && category!.id! == 0) {
-                  Get.rawSnackbar(
-                    message: translate(
-                      "food_categories_page.cannot_modify_category",
-                    ),
-                  );
-
-                  return;
-                }
-
-                final formState = _formKey.currentState;
-
-                if (formState?.validate() ?? false) {
-                  formState?.save();
-
-                  if (category != null) {
-                    // Call update existing category
-                    category!.name = _foodCategoryCtrl.text;
-                    _foodCategoriesCtrl.updateFoodCategory(category!);
-                  } else {
-                    // Call insert new category
-                    final foodCategory = FoodCategory();
-                    foodCategory.name = _foodCategoryCtrl.text;
-
-                    _foodCategoriesCtrl.newFoodCategory(foodCategory);
-                  }
-
-                  Get.back();
-                }
-              },
-            ),
           ],
         ),
       ),
+      actions: [
+        TextButton(
+          child: _ButtonText(category),
+          onPressed: () {
+            if (category != null && category!.id! == 0) {
+              Get.rawSnackbar(
+                message: translate(
+                  "food_categories_page.cannot_modify_category",
+                ),
+              );
+
+              return;
+            }
+
+            final formState = _formKey.currentState;
+
+            if (formState?.validate() ?? false) {
+              formState?.save();
+
+              if (category != null) {
+                // Call update existing category
+                category!.name = _foodCategoryCtrl.text;
+                _foodCategoriesCtrl.updateFoodCategory(category!);
+              } else {
+                // Call insert new category
+                final foodCategory = FoodCategory();
+                foodCategory.name = _foodCategoryCtrl.text;
+
+                _foodCategoriesCtrl.newFoodCategory(foodCategory);
+              }
+
+              Get.back();
+            }
+          },
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(translate("common.cancel").toUpperCase()),
+        ),
+      ],
     );
   }
 }

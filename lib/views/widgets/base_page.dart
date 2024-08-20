@@ -6,12 +6,13 @@ class BasePage extends StatelessWidget {
   final AppBar appBar;
   final Widget body;
   final Widget? floatingActionButton;
+  final EdgeInsets? padding;
 
-  BasePage({
-    required this.appBar,
-    required this.body,
-    this.floatingActionButton,
-  });
+  BasePage(
+      {required this.appBar,
+      required this.body,
+      this.floatingActionButton,
+      this.padding});
 
   @override
   Widget build(BuildContext context) {
@@ -20,8 +21,8 @@ class BasePage extends StatelessWidget {
       drawer: SafeArea(
         child: DrawerMenu(),
       ),
-      body: Container(
-        padding: EdgeInsets.all(15),
+      body: Padding(
+        padding: padding ?? EdgeInsets.only(right: 15, bottom: 15, left: 15),
         child: body,
       ),
       floatingActionButton: floatingActionButton,

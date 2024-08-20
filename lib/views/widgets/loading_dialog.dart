@@ -12,7 +12,7 @@ class LoadingDialog extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircularProgressIndicator(),
+          CircularProgressIndicator.adaptive(),
           SizedBox(height: 15),
           Text(message ?? translate("common.loading")),
         ],

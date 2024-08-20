@@ -15,11 +15,12 @@ class RecipesListPage extends StatelessWidget {
   final _recipeController = Get.find<RecipeController>();
   final _mealsController = Get.find<MealsController>();
   final _foodCategoriesCtrl = Get.find<FoodCategoriesController>();
-  Meal? _selectedMeal;
-  FoodCategory? _selectedCategory;
 
   @override
   Widget build(BuildContext context) {
+    Meal? _selectedMeal;
+    FoodCategory? _selectedCategory;
+
     Future.microtask(() => _recipeController.fetchRecipeList());
     _foodCategoriesCtrl.fetchFoodCategories();
     _mealsController.fetchMeals();
@@ -67,6 +68,7 @@ class RecipesListPage extends StatelessWidget {
       ),
       body: Column(
         children: [
+          SizedBox(height: 10),
           GetBuilder<MealsController>(
             builder: (_) => _MealDropdownList(
               _mealsController.meals,
@@ -93,7 +95,7 @@ class RecipesListPage extends StatelessWidget {
 
                 if (_recipeController.loading) {
                   return Center(
-                    child: CircularProgressIndicator(),
+                    child: CircularProgressIndicator.adaptive(),
                   );
                 }
 
@@ -117,7 +119,10 @@ class RecipesListPage extends StatelessWidget {
                   if (_selectedMeal != null &&
                       _selectedMeal!.id != null &&
                       _selectedMeal!.id! > 0) {
-                    recipesToShow = _filterRecipesByMeal(recipesToShow);
+                    recipesToShow = _filterRecipesByMeal(
+                      _selectedMeal!,
+                      recipesToShow,
+                    );
                   }
 
                   if (recipesToShow.isEmpty) {
@@ -143,14 +148,15 @@ class RecipesListPage extends StatelessWidget {
     );
   }
 
-  List<Recipe> _filterRecipesByMeal(List<Recipe> recipesToShow) {
+  List<Recipe> _filterRecipesByMeal(
+      Meal selectedMeal, List<Recipe> recipesToShow) {
     List<Recipe> filteredRecipes = [];
 
     for (int i = 0; i < recipesToShow.length; i++) {
       final currentRecipe = recipesToShow[i];
       final selectedMeals = currentRecipe.meals
           .where((e) => e.selected)
-          .where((e) => e.id == _selectedMeal!.id)
+          .where((e) => e.id == selectedMeal.id)
           .toList();
 
       if (selectedMeals.isNotEmpty) {
@@ -342,7 +348,7 @@ class _ListItem extends StatelessWidget {
           IconButton(
             icon: Icon(Icons.clear, size: iconSize),
             onPressed: () {
-              showDialog(
+              showAdaptiveDialog(
                 context: context,
                 builder: (context) {
                   return AreYouSureDialog(

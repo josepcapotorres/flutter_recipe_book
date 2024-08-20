@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_myrecipesapp/views/pages/calendar_page.dart';
 import 'package:flutter_myrecipesapp/views/pages/food_categories_page.dart';
+import 'package:flutter_myrecipesapp/views/pages/ingredients_page.dart';
 import 'package:flutter_myrecipesapp/views/pages/meals_page.dart';
 import 'package:flutter_myrecipesapp/views/pages/random_food_page.dart';
 import 'package:flutter_myrecipesapp/views/pages/recipes_list_page.dart';
@@ -56,6 +57,11 @@ class DrawerMenu extends StatelessWidget {
               _DrawerItem(
                 title: translate("meals_page.title"),
                 onTap: () => Get.offNamed(FoodMealsPage.routeName),
+              ),
+              Divider(),
+              _DrawerItem(
+                title: translate("ingredients_page.title"),
+                onTap: () => Get.offNamed(IngredientsPage.routeName),
               ),
             ],
           ),
