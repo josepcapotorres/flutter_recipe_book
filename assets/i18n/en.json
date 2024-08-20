@@ -33,7 +33,13 @@
     "recipe_updated_successfuly": "Recipe updated successfuly",
     "error_update_recipe_data": "Error when updating recipe data",
     "error_deleting_recipe": "Error when deleting the recipe",
-    "are_you_sure_add_recipe_calendar": "Are you sure you want to add this recipe in the calendar?"
+    "are_you_sure_add_recipe_calendar": "Are you sure you want to add this recipe in the calendar?",
+    "no_ingredient_selected": "No ingredient has been selected",
+    "no_ingredients_registered": "Any ingredient has been registered",
+    "add_ings_and_quants": "Add ings and quantities",
+    "err_insert_recipe_ings": "Error on insert the recipe ingredients",
+    "quantity": "Quantity",
+    "unit": "Unit"
   },
   "meals_page": {
     "title": "Meals",
@@ -67,6 +73,14 @@
     "title": "Calendar",
     "no_recipe": "No recipe"
   },
+  "ingredients_page": {
+    "title": "Ingredients",
+    "ingredient_name": "Ingredient name",
+    "add_ingredient": "Add ingredient",
+    "modify_ingredient": "Modify ingredient",
+    "save_ingredient": "Save ingredient",
+    "filter_by_ing_name": "Filter by ingredient name"
+  },
   "common": {
     "app_name": "My recipe book",
     "no_results": "No results",
@@ -74,6 +88,8 @@
     "no": "No",
     "are_you_sure": "Are you sure you want to do this?",
     "loading": "Loading ...",
-    "no_specified": "Unspecified"
+    "no_specified": "Unspecified",
+    "of": "of",
+    "cancel": "Cancel"
   }
 }

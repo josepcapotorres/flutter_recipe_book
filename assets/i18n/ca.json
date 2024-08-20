@@ -33,7 +33,13 @@
     "recipe_updated_successfuly": "Recepta actualitzada correctament",
     "error_update_recipe_data": "Error al actualitzar les dades de la recepta",
     "error_deleting_recipe": "Error al eliminar la recepta",
-    "are_you_sure_add_recipe_calendar": "Estàs segur de voler afegir aquesta recepta al calendari?"
+    "are_you_sure_add_recipe_calendar": "Estàs segur de voler afegir aquesta recepta al calendari?",
+    "no_ingredient_selected": "No has seleccionat cap ingredient",
+    "no_ingredients_registered": "No hi ha ingredients donats d'alta",
+    "add_ings_and_quants": "Afegir ings i quantitats",
+    "err_insert_recipe_ings": "Error al insertar els ingredients de la receta",
+    "quantity": "Quantitat",
+    "unit": "Unitat"
   },
   "meals_page": {
     "title": "Àpats",
@@ -67,6 +73,14 @@
     "title": "Calendari",
     "no_recipe": "No hi ha recepta"
   },
+  "ingredients_page": {
+    "title": "Ingredients",
+    "ingredient_name": "Nom de l'ingredient",
+    "add_ingredient": "Afegir ingredient",
+    "modify_ingredient": "Modificar ingredient",
+    "save_ingredient": "Guardar ingredient",
+    "filter_by_ing_name": "Filtrar per nom d'ingredient"
+  },
   "common": {
     "app_name": "El meu receptari",
     "no_results": "No hi ha resultats",
@@ -74,6 +88,8 @@
     "no": "No",
     "are_you_sure": "Segur que vols realitzar aquesta operació?",
     "loading": "Carregant ...",
-    "no_specified": "Sense especificar"
+    "no_specified": "Sense especificar",
+    "of": "de",
+    "cancel": "Cancel·lar"
   }
 }

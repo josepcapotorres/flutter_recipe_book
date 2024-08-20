@@ -33,7 +33,13 @@
     "recipe_updated_successfuly": "Receta actualizada correctamente",
     "error_update_recipe_data": "Error al actualizar los datos de la receta",
     "error_deleting_recipe": "Error al eliminar la receta",
-    "are_you_sure_add_recipe_calendar": "¿Estás seguro de querer añadir esta receta en el calendario?"
+    "are_you_sure_add_recipe_calendar": "¿Estás seguro de querer añadir esta receta en el calendario?",
+    "no_ingredient_selected": "No has seleccionado ningún ingrediente",
+    "no_ingredients_registered": "No hay ingredientes dados de alta",
+    "add_ings_and_quants": "Añadir ings y cuantidades",
+    "err_insert_recipe_ings": "Error al insertar los ingredientes de la receta",
+    "quantity": "Cantidad",
+    "unit": "Unidad"
   },
   "meals_page": {
     "title": "Comidas",
@@ -67,6 +73,14 @@
     "title": "Calendario",
     "no_recipe": "No recipe"
   },
+  "ingredients_page": {
+    "title": "Ingredientes",
+    "ingredient_name": "Nombre del ingrediente",
+    "add_ingredient": "Añadir ingrediente",
+    "modify_ingredient": "Modificar ingrediente",
+    "save_ingredient": "Guardar ingrediente",
+    "filter_by_ing_name": "Filtrar por nombre de ingrediente"
+  },
   "common": {
     "app_name": "Mi recetario",
     "no_results": "No hay resultados",
@@ -74,6 +88,8 @@
     "no": "No",
     "are_you_sure": "¿Seguro que quieres realizar esta operación?",
     "loading": "Cargando ...",
-    "no_specified": "Sin especificar"
+    "no_specified": "Sin especificar",
+    "of": "de",
+    "cancel": "Cancelar"
   }
 }
