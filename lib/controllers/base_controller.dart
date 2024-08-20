@@ -15,9 +15,9 @@ class BaseController extends GetxController {
 
   void showLoadingDialog({String? message}) {
     if (Get.isDialogOpen == null) {
-      Get.dialog(LoadingDialog(message));
+      Get.dialog(LoadingDialog(message), barrierDismissible: false);
     } else if (Get.isDialogOpen != null && !Get.isDialogOpen!) {
-      Get.dialog(LoadingDialog(message));
+      Get.dialog(LoadingDialog(message), barrierDismissible: false);
     }
   }
 

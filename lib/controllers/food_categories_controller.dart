@@ -31,8 +31,6 @@ class FoodCategoriesController extends BaseController {
           await _foodCategoryManager.getFoodCategoriesByRecipeId(recipeId);
     }
 
-    // TODO: Afegir una opció de "otros" com a primera opció sempre
-
     final noFiltedCategory = FoodCategory();
     noFiltedCategory
       ..id = 0

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_myrecipesapp/controllers/base_controller.dart';
 import 'package:flutter_myrecipesapp/db/db.dart';
 import 'package:flutter_myrecipesapp/models/meals.dart';
@@ -102,6 +104,8 @@ class MealsController extends BaseController {
 
       if (updatedResult) {
         final dbMeals = await _mealTable.getMeals();
+
+        print("dbMeals: ${jsonEncode(dbMeals)}");
 
         meals = dbMeals;
       }

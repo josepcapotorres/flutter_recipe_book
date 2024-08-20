@@ -4,28 +4,33 @@ import 'dart:math';
 
 import 'package:flutter_myrecipesapp/controllers/calendar_controller.dart';
 import 'package:flutter_myrecipesapp/controllers/meals_controller.dart';
-import 'package:flutter_myrecipesapp/models/food_category.dart';
-import 'package:flutter_myrecipesapp/models/meals.dart';
-import 'package:flutter_myrecipesapp/models/recipe.dart';
-import 'package:flutter_myrecipesapp/models/recipe_meal.dart';
+import 'package:flutter_myrecipesapp/models/models.dart';
 import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../db/db.dart';
 import 'base_controller.dart';
 
+// TODO: Refactor brutal de mètodes d'importació i exportació. Segurament amb dos mètodes es pot fer tot
+
 class RecipeController extends BaseController {
   List<Recipe> recipeList = [];
   bool loading = true;
   Recipe? randomRecipe;
+  final _ingredientsFileName = "ingredients.json";
   final _recipesFileName = "recipes.json";
   final _foodCategoriesFileName = "food_categories.json";
   final _mealsFileName = "meals.json";
-  final _recipeMealFileName = "recipe_meals.json";
+  final _recipeMealsFileName = "recipe_meals.json";
+  final _recipeIngredientsFileName = "recipe_ingredients.json";
+  final _calendarFileName = "calendar.json";
+  late IngredientTable _ingredientManager;
   late RecipeTable _recipeManager;
   late FoodCategoryTable _foodCategoryManager;
   late MealTable _mealManager;
   late RecipeMealTable _recipeMealManager;
+  late RecipeIngredientTable _recipeIngredientManager;
+  late CalendarTable _calendarManager;
 
   @override
   void onInit() {
@@ -34,6 +39,10 @@ class RecipeController extends BaseController {
     _recipeManager = Get.find<RecipeTable>();
     _foodCategoryManager = Get.find<FoodCategoryTable>();
     _mealManager = Get.find<MealTable>();
+    _ingredientManager = Get.find<IngredientTable>();
+    _recipeIngredientManager = Get.find<RecipeIngredientTable>();
+    _calendarManager = Get.find<CalendarTable>();
+    _recipeMealManager = Get.find<RecipeMealTable>();
   }
 
   Future<void> fetchRecipeList() async {
@@ -92,9 +101,14 @@ class RecipeController extends BaseController {
       return false;
     }
 
-    fetchRecipeList();
+    await fetchRecipeList();
 
-    if (await calendarCtrl.isRecipeInCalendarBetweenDates(recipeId: recipeId)) {
+    final recipeDateInCalendar =
+        await calendarCtrl.getDateIfRecipeInCalendarBetweenDates(
+      recipeId: recipeId,
+    );
+
+    if (recipeDateInCalendar != null) {
       // It deletes recipe from calendar table
       final deleted = await calendarCtrl.deleteRecipeInCalendar(
         recipeId: recipeId,
@@ -147,46 +161,123 @@ class RecipeController extends BaseController {
     if (!await appExportDir.exists()) {
       await appExportDir.create();
     } else {
-      final recipesFile = File(
-          "${appExportDir.path}${Platform.pathSeparator}$_recipesFileName");
+      // Ingredients
+      final ingredientsFile = File(
+          "${appExportDir.path}${Platform.pathSeparator}$_ingredientsFileName");
 
-      if (await recipesFile.exists()) {
-        await recipesFile.delete();
+      if (await ingredientsFile.exists()) {
+        await ingredientsFile.delete();
       }
 
+      // Food categories
       final foodCategoriesFile = File(
-          "${appExportDir.path}${Platform.pathSeparator}$_foodCategoriesFileName");
+        "${appExportDir.path}${Platform.pathSeparator}$_foodCategoriesFileName",
+      );
 
       if (await foodCategoriesFile.exists()) {
         await foodCategoriesFile.delete();
       }
 
-      final mealsFile =
-          File("${appExportDir.path}${Platform.pathSeparator}$_mealsFileName");
+      // Recipes
+      final recipesFile = File(
+        "${appExportDir.path}${Platform.pathSeparator}$_recipesFileName",
+      );
+
+      if (await recipesFile.exists()) {
+        await recipesFile.delete();
+      }
+
+      // Recipe ingredients
+      final recipeIngredientsFile = File(
+        "${appExportDir.path}${Platform.pathSeparator}$_recipeIngredientsFileName",
+      );
+
+      if (await recipeIngredientsFile.exists()) {
+        await recipeIngredientsFile.delete();
+      }
+
+      // Meals
+      final mealsFile = File(
+        "${appExportDir.path}${Platform.pathSeparator}$_mealsFileName",
+      );
 
       if (await mealsFile.exists()) {
         await mealsFile.delete();
       }
+
+      // Recipe meals
+      final recipeMealsFile = File(
+        "${appExportDir.path}${Platform.pathSeparator}$_recipeMealsFileName",
+      );
+
+      if (await recipeMealsFile.exists()) {
+        await recipeMealsFile.delete();
+      }
+
+      // Calendar
+      final calendarFile = File(
+        "${appExportDir.path}${Platform.pathSeparator}$_calendarFileName",
+      );
+
+      if (await calendarFile.exists()) {
+        await calendarFile.delete();
+      }
     }
 
-    await _exportRecipes(appExportDir, _recipesFileName);
+    await _exportIngredients(appExportDir, _ingredientsFileName);
     await _exportFoodCategories(appExportDir, _foodCategoriesFileName);
+    await _exportRecipes(appExportDir, _recipesFileName);
+    await _exportRecipeIngredients(appExportDir, _recipeIngredientsFileName);
     await _exportMeals(appExportDir, _mealsFileName);
-    await _exportRecipeMeals(appExportDir, _recipeMealFileName);
+    await _exportRecipeMeals(appExportDir, _recipeMealsFileName);
+    await _exportCalendar(appExportDir, _calendarFileName);
+  }
+
+  Future<void> _exportIngredients(
+      Directory appDownloadDir, String ingredientsFileName) async {
+    final ingredients = await _ingredientManager.getIngredients();
+    final ingredientsMap = ingredients.map((e) => e.toJson()).toList();
+    final file = File(
+      "${appDownloadDir.path}${Platform.pathSeparator}$ingredientsFileName",
+    );
+
+    if (!await file.exists()) {
+      await file.create();
+    }
+
+    file.writeAsString(jsonEncode(ingredientsMap));
   }
 
   Future<void> _exportRecipes(
       Directory appDownloadDir, String recipesFileName) async {
     final recipes = await _recipeManager.getRecipes();
     final recipesMap = recipes.map((e) => e.toJson()).toList();
-    final file =
-        File("${appDownloadDir.path}${Platform.pathSeparator}$recipesFileName");
+    final file = File(
+      "${appDownloadDir.path}${Platform.pathSeparator}$recipesFileName",
+    );
 
     if (!await file.exists()) {
       await file.create();
     }
 
     file.writeAsString(jsonEncode(recipesMap));
+  }
+
+  Future<void> _exportRecipeIngredients(
+      Directory appDownloadDir, String recipeIngredientsFileName) async {
+    final recipeIngredients =
+        await _recipeIngredientManager.getRecipeIngredients();
+    final recipeIngredientsMap =
+        recipeIngredients.map((e) => e.toJson()).toList();
+    final file = File(
+      "${appDownloadDir.path}${Platform.pathSeparator}$recipeIngredientsFileName",
+    );
+
+    if (!await file.exists()) {
+      await file.create();
+    }
+
+    file.writeAsString(jsonEncode(recipeIngredientsMap));
   }
 
   Future<void> _exportFoodCategories(
@@ -231,14 +322,34 @@ class RecipeController extends BaseController {
     file.writeAsString(jsonEncode(recipeMealsMap));
   }
 
-  Future<void> importData() async {
-    final exportDir = await _getImportExportDir();
-    final appExportDir = Directory("${exportDir!.path}");
+  Future<void> _exportCalendar(
+      Directory appDownloadDir, String calendarFileName) async {
+    final calendarMap = await _calendarManager.getCalendar();
+    final file = File(
+      "${appDownloadDir.path}${Platform.pathSeparator}$calendarFileName",
+    );
 
-    await _importRecipes(appExportDir, _recipesFileName);
-    await _importFoodCategories(appExportDir, _foodCategoriesFileName);
-    await _importMeals(appExportDir, _mealsFileName);
-    await _importRecipeMeals(appExportDir, _recipeMealFileName);
+    if (!await file.exists()) {
+      await file.create();
+    }
+
+    file.writeAsString(jsonEncode(calendarMap));
+  }
+
+  Future<void> importData() async {
+    final importExportDir = await _getImportExportDir();
+    final appImportExportDir = Directory("${importExportDir!.path}");
+
+    await _importIngredients(appImportExportDir, _ingredientsFileName);
+    await _importFoodCategories(appImportExportDir, _foodCategoriesFileName);
+    await _importRecipes(appImportExportDir, _recipesFileName);
+    await _importRecipeIngredients(
+      appImportExportDir,
+      _recipeIngredientsFileName,
+    );
+    await _importMeals(appImportExportDir, _mealsFileName);
+    await _importRecipeMeals(appImportExportDir, _recipeMealsFileName);
+    await _importCalendar(appImportExportDir, _calendarFileName);
   }
 
   Future<Directory?> _getImportExportDir() async {
@@ -257,10 +368,40 @@ class RecipeController extends BaseController {
         }
       }
     } catch (err, stack) {
-      print("Cannot get download folder path");
+      print("Cannot get download folder path. Error: $err. Stacktrace: $stack");
     }
 
     return directory;
+  }
+
+  Future<void> _importIngredients(
+      Directory appDownloadDir, String ingredientsFileName) async {
+    final importPath =
+        "${appDownloadDir.path}${Platform.pathSeparator}$ingredientsFileName";
+    final ingredientsFile = File(importPath);
+
+    if (!await ingredientsFile.exists()) {
+      Get.rawSnackbar(message: "El fitxer ${ingredientsFile.path} no existeix");
+      return;
+    }
+
+    // Get ingredients from db
+    final ingredientsFromDb = await _ingredientManager.getIngredients();
+
+    // Get ingredients from the exported file
+    final ingredientsFileContent = await ingredientsFile.readAsString();
+    final ingredientsMapFromFile = jsonDecode(ingredientsFileContent) as List;
+    final ingredientsFromFile =
+        ingredientsMapFromFile.map((e) => Ingredient.fromJson(e)).toList();
+
+    for (final currIngredientFromFile in ingredientsFromFile) {
+      if (!ingredientsFromDb.contains(currIngredientFromFile)) {
+        // Insert the element that's in the exported file, but not in the local db
+        final result =
+            await _ingredientManager.newIngredient(currIngredientFromFile);
+        print("Àpat ${currIngredientFromFile.name} creat? $result");
+      }
+    }
   }
 
   Future<void> _importFoodCategories(
@@ -318,6 +459,41 @@ class RecipeController extends BaseController {
         // Insert the element that's in the exported file, but not in the local db
         final result = await _mealManager.newMeal(currMealFromFile);
         print("Àpat ${currMealFromFile.name} creat? $result");
+      }
+    }
+  }
+
+  Future<void> _importRecipeIngredients(
+      Directory appDownloadDir, String recipeIngredientsFileName) async {
+    final importPath =
+        "${appDownloadDir.path}${Platform.pathSeparator}$recipeIngredientsFileName";
+    final recipeIngredientsFile = File(importPath);
+
+    if (!await recipeIngredientsFile.exists()) {
+      Get.rawSnackbar(
+          message: "El fitxer ${recipeIngredientsFile.path} no existeix");
+      return;
+    }
+
+    // Get recipeIngredients from db
+    final recipeIngredientsFromDb =
+        await _recipeIngredientManager.getRecipeIngredients();
+
+    // Get recipeIngredients from the exported file
+    final recipeIngredientsFileContent =
+        await recipeIngredientsFile.readAsString();
+    final recipeIngredientsMapFromFile =
+        jsonDecode(recipeIngredientsFileContent) as List;
+    final recipeIngredientsFromFile = recipeIngredientsMapFromFile
+        .map((e) => RecipeIngredient.fromJson(e))
+        .toList();
+
+    for (final currRecipeIngredientFromFile in recipeIngredientsFromFile) {
+      if (!recipeIngredientsFromDb.contains(currRecipeIngredientFromFile)) {
+        // Insert the element that's in the exported file, but not in the local db
+        final result = await _recipeIngredientManager.newRecipeIngredient(
+          [currRecipeIngredientFromFile],
+        );
       }
     }
   }
@@ -382,6 +558,37 @@ class RecipeController extends BaseController {
 
         print(
           "RecipeMeal ${jsonEncode(currRecipeMealFromFile.toJson())} creat? $result",
+        );
+      }
+    }
+  }
+
+  Future<void> _importCalendar(
+      Directory appDownloadDir, String calendarFileName) async {
+    final importPath =
+        "${appDownloadDir.path}${Platform.pathSeparator}$calendarFileName";
+    final calendarFile = File(importPath);
+
+    if (!await calendarFile.exists()) {
+      Get.rawSnackbar(message: "El fitxer ${calendarFile.path} no existeix");
+      print("El fitxer ${calendarFile.path} no existeix");
+      return;
+    }
+
+    // Get calendar from db
+    final calendarFromDb = await _calendarManager.getCalendar();
+
+    // Get calendar from the exported file
+    final calendarFileContent = await calendarFile.readAsString();
+    final calendarFromFile = jsonDecode(calendarFileContent) as List;
+    /*final calendarFromFile =
+    recipeMealsMapFromFile.map((e) => RecipeMeal.fromJson(e)).toList();*/
+
+    for (final calendarFromFile in calendarFromFile) {
+      if (!calendarFromDb.contains(calendarFromFile)) {
+        // Insert the element that's in the exported file, but not in the local db
+        final result = await _calendarManager.insertCalendarLine(
+          calendarFromFile,
         );
       }
     }

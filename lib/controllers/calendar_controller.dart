@@ -1,5 +1,4 @@
 import 'package:flutter_myrecipesapp/db/db.dart';
-import 'package:flutter_myrecipesapp/db/tables/meal_table.dart';
 import 'package:flutter_myrecipesapp/enums/calendar_week_displayed.dart';
 import 'package:flutter_myrecipesapp/models/calendar_cell.dart';
 import 'package:get/get.dart';
@@ -110,8 +109,9 @@ class CalendarController extends GetxController {
     update();
   }
 
-  Future<bool> isRecipeInCalendarBetweenDates({required int recipeId}) async {
-    return await _calendarManager.isRecipeInCalendarBetweenDates(
+  Future<DateTime?> getDateIfRecipeInCalendarBetweenDates(
+      {required int recipeId}) async {
+    return await _calendarManager.getDateIfRecipeInCalendarBetweenDates(
       recipeId: recipeId,
     );
   }
