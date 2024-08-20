@@ -21,3 +21,9 @@ class UpdateRecipeDataException implements Exception {
 
   UpdateRecipeDataException(this.message);
 }
+
+class SaveRecipeIngredientException implements Exception {
+  final String message;
+
+  SaveRecipeIngredientException(this.message);
+}
