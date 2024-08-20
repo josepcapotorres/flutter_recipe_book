@@ -1,5 +1,6 @@
 import 'package:flutter_myrecipesapp/db/db.dart';
 import 'package:flutter_myrecipesapp/models/models.dart';
+import 'package:sqflite/sqflite.dart';
 
 class MealTable extends DatabaseManager {
   Future<List<Meal>> getMeals() async {
@@ -36,12 +37,16 @@ class MealTable extends DatabaseManager {
     // Mostrar tots meals, però amb el camp "selected" que
     // estigui relacionat amb la recepta guardada
 
-    List<Map<String, Object?>>? meals = await db?.query("meal");
+    List<Map<String, Object?>>? meals = await db?.query(
+      "meal",
+      orderBy: "order_index ASC",
+    );
     List<Map<String, Object?>>? selectedMeals = await db?.rawQuery("""
       SELECT m.*
       FROM recipe_meal rm
       JOIN meal m ON rm.mealId = m.id
-      WHERE rm.recipeId = ?
+      WHERE rm.recipeId = ? 
+      ORDER BY m.order_index ASC
     """, [recipeId]);
 
     List<Meal> returnedMeals = [];
@@ -65,7 +70,16 @@ class MealTable extends DatabaseManager {
   Future<bool> newMeal(Meal meal) async {
     final db = await database;
 
-    final result = await db?.insert("meal", meal.toJson()) ?? 0;
+    final meals = await getMeals();
+
+    meal.orderIndex = meals.length + 1;
+
+    final result = await db?.insert(
+          "meal",
+          meal.toJson(),
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        ) ??
+        0;
 
     return result > 0;
   }
@@ -103,18 +117,20 @@ class MealTable extends DatabaseManager {
     oldMeal.orderIndex = newMeal.orderIndex;
     newMeal.orderIndex = tempOrderIndex;
 
-    await db?.update(
+    final a = await db?.update(
       "meal",
       newMeal.toJson(),
       where: "id = ?",
       whereArgs: [newMeal.id!],
     );
 
-    await db?.update(
+    final b = await db?.update(
       "meal",
       oldMeal.toJson(),
       where: "id = ?",
       whereArgs: [oldMeal.id!],
     );
+
+    print("");
   }
 }

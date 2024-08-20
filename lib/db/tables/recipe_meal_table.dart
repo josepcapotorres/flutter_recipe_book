@@ -1,5 +1,6 @@
 import 'package:flutter_myrecipesapp/db/db.dart';
 import 'package:flutter_myrecipesapp/models/recipe_meal.dart';
+import 'package:sqflite/sqflite.dart';
 
 class RecipeMealTable extends DatabaseManager {
   Future<List<RecipeMeal>> getRecipeMeals() async {
@@ -16,7 +17,11 @@ class RecipeMealTable extends DatabaseManager {
     print("Mètode insertRecipeMeal");
 
     try {
-      result = await db?.insert("recipe_meal", recipeMeal.toJson());
+      result = await db?.insert(
+        "recipe_meal",
+        recipeMeal.toJson(),
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
     } catch (e) {
       print("Excepció controlada: $e");
       return false;

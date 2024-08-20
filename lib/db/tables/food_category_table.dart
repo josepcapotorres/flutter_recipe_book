@@ -1,4 +1,5 @@
 import 'package:get/get.dart';
+import 'package:sqflite/sqflite.dart';
 
 import '../../models/models.dart';
 import '../db.dart';
@@ -45,8 +46,12 @@ class FoodCategoryTable extends DatabaseManager {
   Future<bool> newFoodCategory(FoodCategory foodCategory) async {
     final db = await database;
 
-    final result =
-        await db?.insert("food_category", foodCategory.toJson()) ?? 0;
+    final result = await db?.insert(
+          "food_category",
+          foodCategory.toJson(),
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        ) ??
+        0;
 
     print("newFoodCategory result: $result");
     return result > 0;

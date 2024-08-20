@@ -1,4 +1,5 @@
 import 'package:flutter_myrecipesapp/db/database_manager.dart';
+import 'package:sqflite/sqflite.dart';
 
 import '../../models/models.dart';
 
@@ -38,7 +39,12 @@ class RecipeTable extends DatabaseManager {
   Future<int> newRecipe(Recipe recipe) async {
     final db = await database;
 
-    final result = await db?.insert("recipe", recipe.toJson()) ?? 0;
+    final result = await db?.insert(
+          "recipe",
+          recipe.toJson(),
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        ) ??
+        0;
 
     return result;
   }

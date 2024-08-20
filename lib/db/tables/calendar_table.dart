@@ -7,10 +7,21 @@ import '../../helpers/date_time_helper.dart';
 import '../../models/models.dart';
 
 class CalendarTable extends DatabaseManager {
+  Future<List<Map<String, dynamic>>> getCalendar() async {
+    final db = await database;
+
+    final calendarData = await db?.query("calendar");
+
+    if (calendarData == null) {
+      return [];
+    }
+
+    return calendarData.map((e) => Map<String, dynamic>.from(e)).toList();
+  }
+
   Future<List<FilledCalendarCell>> getCalendarData() async {
     final db = await database;
 
-    // TODO: Mostrar àpats ordenats per ordre d'àpat
     final calendarData = await db?.rawQuery("""
       SELECT c.id, c.recipe_id, c.meal_id, r.name AS 'recipe_name', c.date
       FROM calendar c
@@ -28,8 +39,22 @@ class CalendarTable extends DatabaseManager {
       conflictAlgorithm: ConflictAlgorithm.abort,
     );
 
-    // TODO: id on db is stored as null
+    final prova = await db?.query("calendar");
+
+    // TODO: id on db is stored as null. ARA NO DONA NULL
     return inserted != null && inserted > 0;
+  }
+
+  Future<bool> insertCalendarLine(Map<String, dynamic> calendarLine) async {
+    final db = await database;
+
+    final insertedRows = await db?.insert(
+      "calendar",
+      calendarLine,
+      conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+
+    return insertedRows != null ? insertedRows > 0 : false;
   }
 
   Future<bool> updateRecipeInCalendar(FilledCalendarCell calendar) async {
@@ -42,7 +67,7 @@ class CalendarTable extends DatabaseManager {
       conflictAlgorithm: ConflictAlgorithm.abort,
     );
 
-    // TODO: id on db is stored as null
+    // TODO: id on db is stored as null. ARA NO DONA NULL
     return inserted != null && inserted > 0;
   }
 
@@ -85,7 +110,7 @@ class CalendarTable extends DatabaseManager {
     }
   }
 
-  Future<bool> isRecipeInCalendarBetweenDates({
+  Future<DateTime?> getDateIfRecipeInCalendarBetweenDates({
     required int recipeId,
   }) async {
     final db = await database;
@@ -104,8 +129,14 @@ class CalendarTable extends DatabaseManager {
       WHERE date BETWEEN '$firstDay' AND '$lastDay'
         AND c.id = $recipeId""");
 
-    if (calendarResults == null) return false;
+    if (calendarResults == null) return null;
 
-    return calendarResults.isNotEmpty;
+    if (calendarResults.isEmpty) {
+      return null;
+    }
+
+    final strDate = calendarResults.first["date"] as String;
+
+    return DateTime.tryParse(strDate);
   }
 }
