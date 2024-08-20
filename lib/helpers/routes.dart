@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_myrecipesapp/views/pages/calendar_page.dart';
 import 'package:flutter_myrecipesapp/views/pages/food_categories_page.dart';
+import 'package:flutter_myrecipesapp/views/pages/ingredients_page.dart';
 import 'package:flutter_myrecipesapp/views/pages/meals_page.dart';
 import 'package:flutter_myrecipesapp/views/pages/random_food_page.dart';
 import 'package:flutter_myrecipesapp/views/pages/recipe_detail_page.dart';
@@ -14,5 +15,6 @@ Map<String, WidgetBuilder> getApplicationRoutes() {
     FoodCategoriesPage.routeName: (_) => FoodCategoriesPage(),
     FoodMealsPage.routeName: (_) => FoodMealsPage(),
     CalendarPage.routeName: (_) => CalendarPage(),
+    IngredientsPage.routeName: (_) => IngredientsPage(),
   };
 }
