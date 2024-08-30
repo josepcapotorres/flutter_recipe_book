@@ -1,3 +1,7 @@
+import 'dart:ui';
+
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -7,6 +11,7 @@ import 'package:get/get.dart';
 
 import 'controllers/controllers.dart';
 import 'db/db.dart';
+import 'firebase_options.dart';
 import 'helpers/app_colors.dart';
 import 'helpers/routes.dart';
 
@@ -15,6 +20,19 @@ import 'helpers/routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+
+  // Pass all uncaught "fatal" errors from the framework to Crashlytics
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+
+  // Pass all uncaught asynchronous errors that aren't handled by the Flutter framework to Crashlytics
+  PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
 
   var delegate = await LocalizationDelegate.create(
     fallbackLocale: 'en_US',

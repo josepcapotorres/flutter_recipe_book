@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "116443521890",
+    "project_id": "my-recipe-book-a2a2e",
+    "storage_bucket": "my-recipe-book-a2a2e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:116443521890:android:5816965d2b2629eaf5023b",
+        "android_client_info": {
+          "package_name": "com.josepcapo.myrecipebook"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAHrTgnA_DWzjhhvYXPXU8uAjhXQKi8ZfQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
